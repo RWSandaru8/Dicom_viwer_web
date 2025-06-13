@@ -80,9 +80,9 @@ function Header({
             <div className="flex items-center justify-center space-x-2">{children}</div>
           </div>
           <div className="absolute right-0 top-1/2 flex -translate-y-1/2 select-none items-center">
-            {UndoRedo}
+            {/*{UndoRedo}*/}
             {/*<div className="border-primary-dark mx-1.5 h-[25px] border-r"></div>*/}
-            {PatientInfo}
+            {/*{PatientInfo}*/}
             {/*<div className="border-primary-dark mx-1.5 h-[25px] border-r"></div>*/}
             <div className="flex-shrink-0">
               <DropdownMenu>
@@ -90,7 +90,7 @@ function Header({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-primary mt-2 h-full w-full hover:bg-[#00A693]"
+                    className="text-primary mt-2 h-full w-full hover:bg-[#00a693]"
                   >
                     <Icons.GearSettings className="text-[#F5F5F5]" />
                   </Button>
