@@ -206,6 +206,11 @@ function ViewerLayout({
               </>
             ) : null}
           </ResizablePanelGroup>
+
+          {/* GPV MED text in bottom right corner */}
+          <div className="absolute bottom-2 right-12 text-white text-sm font-semibold opacity-70 z-50">
+            GPV MED
+          </div>
         </React.Fragment>
       </div>
     </div>
