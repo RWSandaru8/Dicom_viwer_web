@@ -10,7 +10,7 @@ export const Upload = (props: IconProps) => (
   >
     <g
       transform="translate(1 1)"
-      stroke="#348CFD"
+      stroke="#000000"
       fill="none"
       fillRule="evenodd"
       strokeLinecap="round"
@@ -21,7 +21,7 @@ export const Upload = (props: IconProps) => (
         cy="8"
         r="8"
       />
-      <path d="M8 3.273v9.454M4 7.273l4-4 4 4" />
+      <path d="M8 3.273v9.454M4 7.273l4-4 4 4" stroke="#000000" />
     </g>
   </svg>
 );

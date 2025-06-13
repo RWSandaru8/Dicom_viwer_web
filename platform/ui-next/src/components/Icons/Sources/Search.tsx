@@ -14,20 +14,13 @@ export const Search = (props: IconProps) => (
       fillRule="evenodd"
     >
       <path d="M0 0h18v18H0z" />
-      <g
-        transform="translate(1 1)"
-        stroke="#348CFD"
+      <path
+        d="M16.5 16.5L12.5 12.5M14 8.5C14 11.5376 11.5376 14 8.5 14C5.46243 14 3 11.5376 3 8.5C3 5.46243 5.46243 3 8.5 3C11.5376 3 14 5.46243 14 8.5Z"
+        stroke="#000000"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.5"
-      >
-        <circle
-          cx="5.565"
-          cy="5.565"
-          r="5.565"
-        />
-        <path d="M9.5 9.5 16 16" />
-      </g>
+      />
     </g>
   </svg>
 );

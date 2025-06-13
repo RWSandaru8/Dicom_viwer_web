@@ -10,14 +10,14 @@ export const AlertOutline = (props: IconProps) => (
     {...props}
   >
     <g
-      stroke="#5ACCE6"
+      stroke="#000000"
       fill="none"
       fillRule="evenodd"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path
-        d="M24 11.794a12.176 12.176 0 0 1-12 12.204 11.823 11.823 0 0 1-12-11.79A12.176 12.176 0 0 1 12 .003a11.824 11.824 0 0 1 12 11.793z"
+        d="M24 11.794a12.176 12.176 0 0 1-12 12.204a11.823 11.823 0 0 1-12-11.79A12.176 12.176 0 0 1 12 .003a11.824 11.824 0 0 1 12 11.793z"
         strokeWidth="1.5"
       />
       <g strokeWidth="2">

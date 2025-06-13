@@ -26,6 +26,7 @@ interface HeaderProps {
   isReturnEnabled?: boolean;
   onClickReturnButton?: () => void;
   isSticky?: boolean;
+  isInDicomViewer?: boolean;
   WhiteLabeling?: {
     createLogoComponentFn?: (React: any, props: any) => ReactNode;
   };
@@ -40,6 +41,7 @@ function Header({
   isReturnEnabled = true,
   onClickReturnButton,
   isSticky = false,
+  isInDicomViewer = true,
   WhiteLabeling,
   PatientInfo,
   UndoRedo,
@@ -59,6 +61,7 @@ function Header({
     >
       <NavBar
         isSticky={isSticky}
+        isInDicomViewer={isInDicomViewer}
         {...props}
       >
         <div className="relative h-[48px] items-center">
