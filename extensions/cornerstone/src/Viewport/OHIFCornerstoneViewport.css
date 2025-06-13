@@ -15,13 +15,14 @@
   position: relative;
   background-color: black;
 
-  /* Prevent the blue outline in Chrome when a viewport is selected */
+  /* Prevent any outline when a viewport is selected */
   outline: 0 !important;
+  border: 1px solid #333333;
 
   /* Prevents the entire page from getting larger
      when the magnify tool is near the sides/corners of the page */
   overflow: hidden;
-  
+
   /* Prevent text selection on the viewport element */
   user-select: none;
   -webkit-user-select: none;
