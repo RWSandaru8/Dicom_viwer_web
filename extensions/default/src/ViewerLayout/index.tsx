@@ -207,7 +207,7 @@ function ViewerLayout({
             ) : null}
           </ResizablePanelGroup>
 
-          {/* GPV MED text in bottom right corner */}
+          {/* GPV MED text in bottom right corner */  /*check*/}
           <div className="absolute bottom-2 right-12 text-white text-sm font-semibold opacity-70 z-50">
             GPV MED
           </div>
