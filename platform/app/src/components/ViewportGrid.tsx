@@ -367,11 +367,11 @@ function ViewerViewportGrid(props: withAppTypes) {
         const tolerance = 0.01;
 
         if (x + width < 1 - tolerance) {
-          style.borderRight = '1px solid hsl(var(--input))';
+          style.borderRight = '1px solid #333333';
         }
 
         if (y + height < 1 - tolerance) {
-          style.borderBottom = '1px solid hsl(var(--input))';
+          style.borderBottom = '1px solid #333333';
         }
 
         return style;
@@ -435,7 +435,7 @@ function ViewerViewportGrid(props: withAppTypes) {
   }
 
   return (
-    <div className="border-input h-[calc(100%-0.25rem)] w-full border">
+    <div className="border-[#333333] h-[calc(100%-0.25rem)] w-full border">
       <ViewportGrid
         numRows={numRows}
         numCols={numCols}

@@ -13,6 +13,7 @@ function ViewportGrid({ numRows, numCols, layoutType, children }) {
         position: 'relative',
         height: '100%',
         width: '100%',
+        backgroundColor: 'black',
       }}
     >
       {children}
