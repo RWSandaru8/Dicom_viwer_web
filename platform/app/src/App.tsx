@@ -132,7 +132,8 @@ function App({
     });
   }
 
-  const CombinedProviders = ({ children }) => Compose({ components: providers, children });
+  const CombinedProviders = ({ children }: { children: React.ReactNode }) =>
+    Compose({ components: providers, children });
 
   let authRoutes = null;
 
