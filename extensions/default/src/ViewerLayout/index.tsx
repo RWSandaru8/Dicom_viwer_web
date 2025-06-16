@@ -8,6 +8,8 @@ import SidePanelWithServices from '../Components/SidePanelWithServices';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@ohif/ui-next';
 import useResizablePanels from './ResizablePanelsHook';
 import { Toolbar } from '../Toolbar/Toolbar';
+import { useViewportGrid } from '@ohif/ui-next';
+import { IconPresentationProvider, ToolButton } from '@ohif/ui-next';
 
 const resizableHandleClassName = 'mt-[1px] bg-black';
 
@@ -64,6 +66,9 @@ function ViewerLayout({
   const LoadingIndicatorProgress = customizationService.getCustomization(
     'ui.loadingIndicatorProgress'
   );
+
+  const [viewportGrid] = useViewportGrid();
+  const { activeViewportId } = viewportGrid;
 
   /**
    * Set body classes (tailwindcss) that don't allow vertical
@@ -193,7 +198,7 @@ function ViewerLayout({
                       top: 0,
                       right: 0,
                       height: '100%',
-                      width: '80px',
+                      width: '90px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -202,10 +207,27 @@ function ViewerLayout({
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
                       borderLeft: '1.5px solid rgba(80,80,80,0.25)',
-                      zIndex: 40,
+                      zIndex: 1,
+                      boxShadow: '-6px 0 18px 0 rgba(0,0,0,0.18)',
+                      pointerEvents: 'auto',
                     }}
                   >
-                    <Toolbar buttonSection="primary" location={1} />
+                    <IconPresentationProvider size="large" IconContainer={ToolButton}>
+                      <div style={{
+                        pointerEvents: 'auto',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '32px',
+                        paddingBottom: '32px',
+                        gap: '18px',
+                      }}>
+                        <Toolbar buttonSection="primary" location={1} viewportId={activeViewportId} />
+                      </div>
+                    </IconPresentationProvider>
                   </div>
                 </div>
               </div>
