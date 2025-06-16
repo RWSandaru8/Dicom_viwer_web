@@ -682,7 +682,7 @@ function WorkList(props: WorkListProps) {
                     key={range}
                     variant="secondary"
                     size="small"
-                    className={`${selectedDateRange === range ? 'text-[#333333]' : 'bg-[#00A693] text-[#E2E8F0]'} whitespace-nowrap px-3`}
+                    className={`${selectedDateRange === range ? 'bg-[#00A693] text-[#E2E8F0]' : 'bg-[#F5F5F5] text-[#333333]'} whitespace-nowrap px-3`}
                     onClick={() => setSelectedDateRange(range)}
                   >
                     {range}
