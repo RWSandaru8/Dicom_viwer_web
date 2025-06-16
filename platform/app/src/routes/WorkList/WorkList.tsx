@@ -6,11 +6,14 @@ import moment from 'moment';
 import qs from 'query-string';
 import isEqual from 'lodash.isequal';
 import { useTranslation } from 'react-i18next';
-//
+import { Types } from '@ohif/core';
+import { Calendar as CalendarIcon } from 'lucide-react';
+
 import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '../../hooks';
-import { utils, Types as coreTypes } from '@ohif/core';
+import { utils } from '@ohif/core';
+import { FolderKanban, Clock4, CalendarDays } from 'lucide-react';
 
 import {
   StudyListExpandedRow,
@@ -20,6 +23,7 @@ import {
   StudyListFilter,
   Button,
   ButtonEnums,
+  PatientInfoVisibility,
 } from '@ohif/ui';
 
 import {
@@ -34,37 +38,91 @@ import {
   Onboarding,
   ScrollArea,
   InvestigationalUseDialog,
+  Card,
+  InputFilter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Calendar,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@ohif/ui-next';
 
-import { Types } from '@ohif/ui';
+import { ModalityButtons } from '../../components/ModalityButtons';
+import { CustomIcons } from '../../components/CustomIcons';
 
 import { preserveQueryParameters, preserveQueryStrings } from '../../utils/preserveQueryParameters';
-
-const PatientInfoVisibility = Types.PatientInfoVisibility;
 
 const { sortBySeriesDate } = utils;
 
 const seriesInStudiesMap = new Map();
 
-/**
- * TODO:
- * - debounce `setFilterValues` (150ms?)
- */
-function WorkList({
-  data: studies,
-  dataTotal: studiesTotal,
-  isLoadingData,
-  dataSource,
-  hotkeysManager,
-  dataPath,
-  onRefresh,
-  servicesManager,
-}: withAppTypes) {
+interface FilterValues {
+  patientName: string;
+  mrn: string;
+  studyDate: {
+    startDate: string | null;
+    endDate: string | null;
+  };
+  description: string;
+  modalities: string[];
+  accession: string;
+  pageNumber: number;
+  resultsPerPage: number;
+  sortBy: string;
+  sortDirection: 'ascending' | 'descending' | 'none';
+  configUrl?: string;
+  datasources: string;
+}
+
+const defaultFilterValues: FilterValues = {
+  patientName: '',
+  mrn: '',
+  studyDate: {
+    startDate: null,
+    endDate: null,
+  },
+  description: '',
+  modalities: [],
+  accession: '',
+  pageNumber: 1,
+  resultsPerPage: 25,
+  sortBy: 'studyDate',
+  sortDirection: 'descending',
+  datasources: '',
+};
+
+interface WorkListProps {
+  data: Types.StudyMetadata[];
+  dataTotal: number;
+  isLoadingData: boolean;
+  dataSource: {
+    query: Record<string, any>;
+    getConfig?: () => any;
+  };
+  hotkeysManager: Record<string, any>;
+  dataPath: string;
+  onRefresh: () => void;
+  servicesManager: Record<string, any>;
+}
+
+function WorkList(props: WorkListProps) {
+  const {
+    data: studies,
+    dataTotal: studiesTotal,
+    isLoadingData,
+    dataSource,
+    hotkeysManager,
+    dataPath,
+    onRefresh,
+    servicesManager,
+  } = props;
   const { show, hide } = useModal();
   const { t } = useTranslation();
-  // ~ Modes
   const [appConfig] = useAppConfig();
-  // ~ Filters
   const searchParams = useSearchParams();
   const navigate = useNavigate();
   const STUDIES_LIMIT = 101;
@@ -72,23 +130,34 @@ function WorkList({
   const [sessionQueryFilterValues, updateSessionQueryFilterValues] = useSessionStorage({
     key: 'queryFilterValues',
     defaultValue: queryFilterValues,
-    // ToDo: useSessionStorage currently uses an unload listener to clear the filters from session storage
-    // so on systems that do not support unload events a user will NOT be able to alter any existing filter
-    // in the URL, load the page and have it apply.
     clearOnUnload: true,
   });
-  const [filterValues, _setFilterValues] = useState({
-    ...defaultFilterValues,
-    ...sessionQueryFilterValues,
+  const [filterValues, setFilterValues] = useState<FilterValues>({
+    patientName: '',
+    mrn: '',
+    studyDate: {
+      startDate: null,
+      endDate: null,
+    },
+    description: '',
+    modalities: [] as string[],
+    accession: '',
+    pageNumber: 1,
+    resultsPerPage: 25,
+    sortBy: 'studyDate',
+    sortDirection: 'descending',
+    datasources: '',
   });
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDateRange, setSelectedDateRange] = useState('');
+  const [selectedModality, setSelectedModality] = useState('All');
+  const [selectedSource, setSelectedSource] = useState('All Sources');
+  const [availableModalities] = useState<string[]>(['All', 'CT', 'MR', 'DX', 'IO', 'CR']);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const debouncedFilterValues = useDebounce(filterValues, 200);
   const { resultsPerPage, pageNumber, sortBy, sortDirection } = filterValues;
-
-  /*
-   * The default sort value keep the filters synchronized with runtime conditional sorting
-   * Only applied if no other sorting is specified and there are less than 101 studies
-   */
 
   const canSort = studiesTotal < STUDIES_LIMIT;
   const shouldUseDefaultSort = sortBy === '' || !sortBy;
@@ -127,24 +196,23 @@ function WorkList({
     });
   }, [canSort, studies, shouldUseDefaultSort, sortBy, sortModifier]);
 
-  // ~ Rows & Studies
-  const [expandedRows, setExpandedRows] = useState([]);
-  const [studiesWithSeriesData, setStudiesWithSeriesData] = useState([]);
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [studiesWithSeriesData, setStudiesWithSeriesData] = useState<string[]>([]);
   const numOfStudies = studiesTotal;
   const querying = useMemo(() => {
     return isLoadingData || expandedRows.length > 0;
   }, [isLoadingData, expandedRows]);
 
-  const setFilterValues = val => {
+  const updateFilterValues = (val: FilterValues) => {
     if (filterValues.pageNumber === val.pageNumber) {
       val.pageNumber = 1;
     }
-    _setFilterValues(val);
+    setFilterValues(val);
     updateSessionQueryFilterValues(val);
     setExpandedRows([]);
   };
 
-  const onPageNumberChange = newPageNumber => {
+  const onPageNumberChange = (newPageNumber: number) => {
     const oldPageNumber = filterValues.pageNumber;
     const rollingPageNumberMod = Math.floor(101 / filterValues.resultsPerPage);
     const rollingPageNumber = oldPageNumber % rollingPageNumberMod;
@@ -155,18 +223,17 @@ function WorkList({
       return;
     }
 
-    setFilterValues({ ...filterValues, pageNumber: newPageNumber });
+    updateFilterValues({ ...filterValues, pageNumber: newPageNumber });
   };
 
-  const onResultsPerPageChange = newResultsPerPage => {
-    setFilterValues({
+  const onResultsPerPageChange = (newResultsPerPage: number) => {
+    updateFilterValues({
       ...filterValues,
       pageNumber: 1,
       resultsPerPage: Number(newResultsPerPage),
     });
   };
 
-  // Set body style
   useEffect(() => {
     document.body.classList.add('bg-black');
     return () => {
@@ -174,28 +241,23 @@ function WorkList({
     };
   }, []);
 
-  // Sync URL query parameters with filters
   useEffect(() => {
     if (!debouncedFilterValues) {
       return;
     }
 
-    const queryString = {};
-    Object.keys(defaultFilterValues).forEach(key => {
-      const defaultValue = defaultFilterValues[key];
-      const currValue = debouncedFilterValues[key];
-
-      // TODO: nesting/recursion?
-      if (key === 'studyDate') {
-        if (currValue.startDate && defaultValue.startDate !== currValue.startDate) {
+    const queryString: Record<string, any> = {};
+    Object.entries(filterValues).forEach(([key, currValue]) => {
+      if (currValue && key === 'studyDate') {
+        if (currValue.startDate) {
           queryString.startDate = currValue.startDate;
         }
-        if (currValue.endDate && defaultValue.endDate !== currValue.endDate) {
+        if (currValue.endDate) {
           queryString.endDate = currValue.endDate;
         }
-      } else if (key === 'modalities' && currValue.length) {
+      } else if (key === 'modalities' && Array.isArray(currValue) && currValue.length) {
         queryString.modalities = currValue.join(',');
-      } else if (currValue !== defaultValue) {
+      } else if (currValue) {
         queryString[key] = currValue;
       }
     });
@@ -210,24 +272,19 @@ function WorkList({
       pathname: '/',
       search: search ? `?${search}` : undefined,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedFilterValues]);
+  }, [debouncedFilterValues, navigate, filterValues]);
 
-  // Query for series information
   useEffect(() => {
-    const fetchSeries = async studyInstanceUid => {
+    const fetchSeries = async (studyInstanceUid: string) => {
       try {
         const series = await dataSource.query.series.search(studyInstanceUid);
         seriesInStudiesMap.set(studyInstanceUid, sortBySeriesDate(series));
         setStudiesWithSeriesData([...studiesWithSeriesData, studyInstanceUid]);
       } catch (ex) {
-        // TODO: UI Notification Service
         console.warn(ex);
       }
     };
 
-    // TODO: WHY WOULD YOU USE AN INDEX OF 1?!
-    // Note: expanded rows index begins at 1
     for (let z = 0; z < expandedRows.length; z++) {
       const expandedRowIndex = expandedRows[z] - 1;
       const studyInstanceUid = sortedStudies[expandedRowIndex].studyInstanceUid;
@@ -238,11 +295,9 @@ function WorkList({
 
       fetchSeries(studyInstanceUid);
     }
+  }, [expandedRows, studies, sortedStudies, studiesWithSeriesData, dataSource.query.series]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedRows, studies]);
-
-  const isFiltering = (filterValues, defaultFilterValues) => {
+  const isFiltering = (filterValues: FilterValues, defaultFilterValues: FilterValues) => {
     return !isEqual(filterValues, defaultFilterValues);
   };
 
@@ -256,14 +311,17 @@ function WorkList({
     const {
       studyInstanceUid,
       accession,
-      modalities,
+      modalities: studyModalities,
       instances,
       description,
       mrn,
       patientName,
       date,
       time,
-    } = study;
+    } = study as Types.StudyMetadata;
+
+    const modalities = Array.isArray(studyModalities) ? studyModalities : [studyModalities];
+
     const studyDate =
       date &&
       moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
@@ -275,7 +333,7 @@ function WorkList({
         t('Common:localTimeFormat', 'hh:mm A')
       );
 
-    const makeCopyTooltipCell = textValue => {
+    const makeCopyTooltipCell = (textValue: string | undefined | null) => {
       if (!textValue) {
         return '';
       }
@@ -300,12 +358,12 @@ function WorkList({
       row: [
         {
           key: 'patientName',
-          content: patientName ? makeCopyTooltipCell(patientName) : null,
+          content: patientName ? makeCopyTooltipCell(patientName as string) : null,
           gridCol: 4,
         },
         {
           key: 'mrn',
-          content: makeCopyTooltipCell(mrn),
+          content: makeCopyTooltipCell(mrn as string),
           gridCol: 3,
         },
         {
@@ -321,7 +379,7 @@ function WorkList({
         },
         {
           key: 'description',
-          content: makeCopyTooltipCell(description),
+          content: makeCopyTooltipCell(description as string),
           gridCol: 4,
         },
         {
@@ -332,7 +390,7 @@ function WorkList({
         },
         {
           key: 'accession',
-          content: makeCopyTooltipCell(accession),
+          content: makeCopyTooltipCell(accession as string),
           gridCol: 3,
         },
         {
@@ -352,19 +410,16 @@ function WorkList({
           gridCol: 2,
         },
       ],
-      // Todo: This is actually running for all rows, even if they are
-      // not clicked on.
       expandedContent: (
         <StudyListExpandedRow
           seriesTableColumns={{
             description: t('StudyList:Description'),
-            seriesNumber: t('StudyList:Series'),
             modality: t('StudyList:Modality'),
             instances: t('StudyList:Instances'),
           }}
           seriesTableDataSource={
             seriesInStudiesMap.has(studyInstanceUid)
-              ? seriesInStudiesMap.get(studyInstanceUid).map(s => {
+              ? seriesInStudiesMap.get(studyInstanceUid).map((s: Types.SeriesMetadata) => {
                   return {
                     description: s.description || '(empty)',
                     seriesNumber: s.seriesNumber ?? '',
@@ -379,30 +434,24 @@ function WorkList({
             {(appConfig.groupEnabledModesFirst
               ? appConfig.loadedModes.sort((a, b) => {
                   const isValidA = a.isValidMode({
-                    modalities: modalities.replaceAll('/', '\\'),
+                    modalities: modalities.join(',').replaceAll('/', '\\'),
                     study,
                   }).valid;
                   const isValidB = b.isValidMode({
-                    modalities: modalities.replaceAll('/', '\\'),
+                    modalities: modalities.join(',').replaceAll('/', '\\'),
                     study,
                   }).valid;
 
-                  return isValidB - isValidA;
+                  return (isValidB ? 1 : 0) - (isValidA ? 1 : 0);
                 })
               : appConfig.loadedModes
             ).map((mode, i) => {
-              const modalitiesToCheck = modalities.replaceAll('/', '\\');
+              const modalitiesToCheck = modalities.join(',').replaceAll('/', '\\');
 
               const { valid: isValidMode, description: invalidModeDescription } = mode.isValidMode({
                 modalities: modalitiesToCheck,
                 study,
               });
-              // TODO: Modes need a default/target route? We mostly support a single one for now.
-              // We should also be using the route path, but currently are not
-              // mode.routeName
-              // mode.routes[x].path
-              // Don't specify default data source, and it should just be picked up... (this may not currently be the case)
-              // How do we know which params to pass? Today, it's just StudyInstanceUIDs and configUrl if exists
               const query = new URLSearchParams();
               if (filterValues.configUrl) {
                 query.append('configUrl', filterValues.configUrl);
@@ -410,49 +459,43 @@ function WorkList({
               query.append('StudyInstanceUIDs', studyInstanceUid);
               preserveQueryParameters(query);
 
-              return (
-                mode.displayName && (
-                  <Link
-                    className={isValidMode ? '' : 'cursor-not-allowed'}
-                    key={i}
-                    to={`${mode.routeName}${dataPath || ''}?${query.toString()}`}
-                    onClick={event => {
-                      // In case any event bubbles up for an invalid mode, prevent the navigation.
-                      // For example, the event bubbles up when the icon embedded in the disabled button is clicked.
-                      if (!isValidMode) {
-                        event.preventDefault();
-                      }
-                    }}
-                    // to={`${mode.routeName}/dicomweb?StudyInstanceUIDs=${studyInstanceUid}`}
+              return mode.displayName ? (
+                <Link
+                  className={isValidMode ? '' : 'cursor-not-allowed'}
+                  key={i}
+                  to={`${mode.routeName}${dataPath || ''}?${query.toString()}`}
+                  onClick={event => {
+                    if (!isValidMode) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <Button
+                    variant="default"
+                    size="small"
+                    disabled={!isValidMode}
+                    startIconTooltip={
+                      !isValidMode ? (
+                        <div className="font-inter flex w-[206px] whitespace-normal text-left text-xs font-normal text-white">
+                          {invalidModeDescription}
+                        </div>
+                      ) : null
+                    }
+                    startIcon={
+                      isValidMode ? (
+                        <Icons.LaunchArrow className="!h-[20px] !w-[20px] text-black" />
+                      ) : (
+                        <Icons.LaunchInfo className="!h-[20px] !w-[20px] text-black" />
+                      )
+                    }
+                    onClick={() => {}}
+                    dataCY={`mode-${mode.routeName}-${studyInstanceUid}`}
+                    className={isValidMode ? 'text-[13px]' : 'bg-[#000000] text-[13px]'}
                   >
-                    {/* TODO revisit the completely rounded style of buttons used for launching a mode from the worklist later */}
-                    <Button
-                      type={ButtonEnums.type.primary}
-                      size={ButtonEnums.size.medium}
-                      disabled={!isValidMode}
-                      startIconTooltip={
-                        !isValidMode ? (
-                          <div className="font-inter flex w-[206px] whitespace-normal text-left text-xs font-normal text-white">
-                            {invalidModeDescription}
-                          </div>
-                        ) : null
-                      }
-                      startIcon={
-                        isValidMode ? (
-                          <Icons.LaunchArrow className="!h-[20px] !w-[20px] text-black" />
-                        ) : (
-                          <Icons.LaunchInfo className="!h-[20px] !w-[20px] text-black" />
-                        )
-                      }
-                      onClick={() => {}}
-                      dataCY={`mode-${mode.routeName}-${studyInstanceUid}`}
-                      className={isValidMode ? 'text-[13px]' : 'bg-[#000000] text-[13px]'}
-                    >
-                      {mode.displayName}
-                    </Button>
-                  </Link>
-                )
-              );
+                    {mode.displayName}
+                  </Button>
+                </Link>
+              ) : null;
             })}
           </div>
         </StudyListExpandedRow>
@@ -465,46 +508,33 @@ function WorkList({
 
   const hasStudies = numOfStudies > 0;
 
-  const AboutModal = customizationService.getCustomization(
-    'ohif.aboutModal'
-  ) as coreTypes.MenuComponentCustomization;
-  const UserPreferencesModal = customizationService.getCustomization(
-    'ohif.userPreferencesModal'
-  ) as coreTypes.MenuComponentCustomization;
+  const AboutModal = customizationService.getCustomization('ohif.aboutModal');
+  const UserPreferencesModal = customizationService.getCustomization('ohif.userPreferencesModal');
 
-  const menuOptions = [
-    {
-      title: AboutModal?.menuTitle ?? t('Header:About'),
-      icon: 'info',
-      onClick: () =>
-        show({
-          content: AboutModal,
-          title: AboutModal?.title ?? t('AboutModal:About OHIF Viewer'),
-          containerClassName: AboutModal?.containerClassName ?? 'max-w-md',
-        }),
-    },
-    {
-      title: UserPreferencesModal.menuTitle ?? t('Header:Preferences'),
-      icon: 'settings',
-      onClick: () =>
-        show({
-          content: UserPreferencesModal as React.ComponentType,
-          title: UserPreferencesModal.title ?? t('UserPreferencesModal:User preferences'),
-          containerClassName:
-            UserPreferencesModal?.containerClassName ?? 'flex max-w-4xl p-6 flex-col',
-        }),
-    },
-  ];
-
-  if (appConfig.oidc) {
-    menuOptions.push({
-      icon: 'power-off',
-      title: t('Header:Logout'),
-      onClick: () => {
-        navigate(`/logout?redirect_uri=${encodeURIComponent(window.location.href)}`);
+  const menuOptions = useMemo(() => {
+    return [
+      {
+        id: 'about',
+        title: t('Header:About'),
+        icon: 'info',
+        onClick: () =>
+          show(AboutModal, {
+            direction: 'left',
+            isOpen: true,
+          }),
       },
-    });
-  }
+      {
+        id: 'preferences',
+        title: t('Header:Preferences'),
+        icon: 'preferences',
+        onClick: () =>
+          show(UserPreferencesModal, {
+            direction: 'left',
+            isOpen: true,
+          }),
+      },
+    ];
+  }, [AboutModal, UserPreferencesModal, show, t]);
 
   const LoadingIndicatorProgress = customizationService.getCustomization(
     'ui.loadingIndicatorProgress'
@@ -515,21 +545,24 @@ function WorkList({
     DicomUploadComponent && dataSource.getConfig()?.dicomUploadEnabled
       ? {
           title: 'Upload files',
-          closeButton: true,
-          shouldCloseOnEsc: false,
-          shouldCloseOnOverlayClick: false,
           content: () => (
             <DicomUploadComponent
               dataSource={dataSource}
               onComplete={() => {
                 hide();
-                onRefresh();
               }}
               onStarted={() => {
                 show({
-                  ...uploadProps,
-                  // when upload starts, hide the default close button as closing the dialogue must be handled by the upload dialogue itself
-                  closeButton: false,
+                  title: 'Upload files',
+                  content: () => (
+                    <DicomUploadComponent
+                      dataSource={dataSource}
+                      onComplete={() => {
+                        hide();
+                      }}
+                      onStarted={() => {}}
+                    />
+                  ),
                 });
               }}
             />
@@ -548,20 +581,182 @@ function WorkList({
         menuOptions={menuOptions}
         isReturnEnabled={false}
         WhiteLabeling={appConfig.whiteLabeling}
-        showPatientInfo={PatientInfoVisibility.DISABLED}
+        PatientInfo="disabled"
         isInDicomViewer={false}
       />
       <Onboarding />
       <InvestigationalUseDialog dialogConfiguration={appConfig?.investigationalUseDialog} />
-      <div className="flex h-full flex-col overflow-y-auto">
-        <ScrollArea>
-          <div className="flex grow flex-col">
+
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="bg-primary-dark px-4 pt-3">
+            {/* Stats Cards */}
+            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* First Card */}
+              <Card className="h-28 md:h-32">
+                {' '}
+                {/* Mobile: h-32 (8rem/128px), Desktop: h-40 (10rem/160px) */}
+                <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
+                  <div>
+                    <span className="text-sm text-gray-400">Total Studies</span>
+                    <span className="block text-4xl font-bold text-gray-300 md:text-5xl">77</span>
+                    <span className="text-xs text-green-400 md:text-sm">
+                      &#9650; 12% from last month
+                    </span>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 p-1 md:h-12 md:w-12">
+                    <FolderKanban className="h-6 w-6 text-gray-300 md:h-8 md:w-8" />
+                  </div>
+                </div>
+              </Card>
+
+              {/* Second Card */}
+              <Card className="h-28 md:h-32">
+                {' '}
+                {/* Same responsive height */}
+                <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
+                  <div>
+                    <span className="text-sm text-gray-400">Today's Scans</span>
+                    <span className="block text-4xl font-bold text-gray-300 md:text-5xl">8</span>
+                    <span className="text-xs text-gray-400 md:text-sm">Last scan: 2:45 PM</span>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 p-1 md:h-12 md:w-12">
+                    <Clock4 className="h-6 w-6 text-gray-300 md:h-8 md:w-8" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              {/* Date buttons - now stacked vertically on mobile */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Calendar button */}
+                <Popover
+                  open={isCalendarOpen}
+                  onOpenChange={setIsCalendarOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      className="!ml-0 h-8 w-8 bg-gray-700 !pl-0 !pr-0 hover:bg-gray-700"
+                      onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                    >
+                      <CalendarDays className="h-4 w-4 text-white" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="range"
+                      selected={{
+                        from: filterValues.studyDate.startDate
+                          ? new Date(filterValues.studyDate.startDate)
+                          : undefined,
+                        to: filterValues.studyDate.endDate
+                          ? new Date(filterValues.studyDate.endDate)
+                          : undefined,
+                      }}
+                      onSelect={range => {
+                        if (range?.from) {
+                          updateFilterValues({
+                            ...filterValues,
+                            studyDate: {
+                              startDate: range.from.toISOString().split('T')[0],
+                              endDate: range?.to ? range.to.toISOString().split('T')[0] : null,
+                            },
+                          });
+                        }
+                      }}
+                      className="rounded-md border"
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {/* Date range buttons */}
+                {['1D', '3D', '1W', '1M', '1Y', 'ALL'].map(range => (
+                  <Button
+                    key={range}
+                    variant="secondary"
+                    size="small"
+                    className={`${selectedDateRange === range ? 'bg-primary-main text-black' : ''} whitespace-nowrap px-3`}
+                    onClick={() => setSelectedDateRange(range)}
+                  >
+                    {range}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Search - moves below on mobile */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <InputFilter
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchQuery(e.target.value)
+                  }
+                  placeholder="Search..."
+                  className="w-full md:w-64"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    className="flex-1 md:flex-none"
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="small"
+                    className="flex-1 md:flex-none"
+                  >
+                    Search
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modality and Source Filters - stacked on mobile */}
+            <div className="mb-4 flex flex-col gap-3 pb-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <span className="text-gray-400">Modality:</span>
+                <ModalityButtons
+                  modalities={availableModalities}
+                  selectedModality={selectedModality}
+                  onModalityChange={setSelectedModality}
+                  className="grid grid-cols-3 gap-2 sm:flex sm:flex-row"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <span className="text-gray-400">Source:</span>
+                <Select
+                  value={selectedSource}
+                  onValueChange={setSelectedSource}
+                  className="w-full sm:w-40"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Sources">All Sources</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Study List Content */}
+          <div className="flex flex-1 flex-col">
             <StudyListFilter
               numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
               filtersMeta={filtersMeta}
               filterValues={{ ...filterValues, ...defaultSortValues }}
-              onChange={setFilterValues}
-              clearFilters={() => setFilterValues(defaultFilterValues)}
+              onChange={updateFilterValues}
+              clearFilters={() => updateFilterValues(defaultFilterValues)}
               isFiltering={isFiltering(filterValues, defaultFilterValues)}
               onUploadClick={uploadProps ? () => show(uploadProps) : undefined}
               getDataSourceConfigurationComponent={
@@ -570,33 +765,33 @@ function WorkList({
                   : undefined
               }
             />
-          </div>
-          {hasStudies ? (
-            <div className="flex grow flex-col">
-              <StudyListTable
-                tableDataSource={tableDataSource.slice(offset, offsetAndTake)}
-                numOfStudies={numOfStudies}
-                querying={querying}
-                filtersMeta={filtersMeta}
-              />
-              <div className="grow">
+
+            {hasStudies ? (
+              <>
+                <StudyListTable
+                  tableDataSource={tableDataSource.slice(offset, offsetAndTake)}
+                  numOfStudies={numOfStudies}
+                  querying={querying}
+                  filtersMeta={filtersMeta}
+                  PatientInfo="disabled"
+                />
                 <StudyListPagination
                   onChangePage={onPageNumberChange}
                   onChangePerPage={onResultsPerPageChange}
                   currentPage={pageNumber}
                   perPage={resultsPerPage}
                 />
+              </>
+            ) : (
+              <div className="flex flex-1 items-center justify-center">
+                {appConfig.showLoadingIndicator && isLoadingData ? (
+                  <LoadingIndicatorProgress className="h-full w-full bg-black" />
+                ) : (
+                  <EmptyStudies />
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center pt-48">
-              {appConfig.showLoadingIndicator && isLoadingData ? (
-                <LoadingIndicatorProgress className={'h-full w-full bg-black'} />
-              ) : (
-                <EmptyStudies />
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </ScrollArea>
       </div>
     </div>
@@ -613,59 +808,42 @@ WorkList.propTypes = {
   servicesManager: PropTypes.object.isRequired,
 };
 
-const defaultFilterValues = {
-  patientName: '',
-  mrn: '',
-  studyDate: {
-    startDate: null,
-    endDate: null,
-  },
-  description: '',
-  modalities: [],
-  accession: '',
-  sortBy: '',
-  sortDirection: 'none',
-  pageNumber: 1,
-  resultsPerPage: 25,
-  datasources: '',
-};
-
-function _tryParseInt(str, defaultValue) {
+function _tryParseInt(str: string | null | undefined, defaultValue: any) {
   let retValue = defaultValue;
   if (str && str.length > 0) {
-    if (!isNaN(str)) {
+    if (!isNaN(Number(str))) {
       retValue = parseInt(str);
     }
   }
   return retValue;
 }
 
-function _getQueryFilterValues(params) {
+function _getQueryFilterValues(params: URLSearchParams) {
   const newParams = new URLSearchParams();
   for (const [key, value] of params) {
     newParams.set(key.toLowerCase(), value);
   }
   params = newParams;
 
-  const queryFilterValues = {
-    patientName: params.get('patientname'),
-    mrn: params.get('mrn'),
+  const queryFilterValues: FilterValues = {
+    patientName: params.get('patientname') || '',
+    mrn: params.get('mrn') || '',
     studyDate: {
       startDate: params.get('startdate') || null,
       endDate: params.get('enddate') || null,
     },
-    description: params.get('description'),
+    description: params.get('description') || '',
     modalities: params.get('modalities') ? params.get('modalities').split(',') : [],
-    accession: params.get('accession'),
-    sortBy: params.get('sortby'),
-    sortDirection: params.get('sortdirection'),
-    pageNumber: _tryParseInt(params.get('pagenumber'), undefined),
-    resultsPerPage: _tryParseInt(params.get('resultsperpage'), undefined),
-    datasources: params.get('datasources'),
-    configUrl: params.get('configurl'),
+    accession: params.get('accession') || '',
+    sortBy: params.get('sortby') || 'studyDate',
+    sortDirection:
+      (params.get('sortdirection') as 'ascending' | 'descending' | 'none') || 'descending',
+    pageNumber: _tryParseInt(params.get('pagenumber'), 1),
+    resultsPerPage: _tryParseInt(params.get('resultsperpage'), 25),
+    datasources: params.get('datasources') || '',
+    configUrl: params.get('configurl') || undefined,
   };
 
-  // Delete null/undefined keys
   Object.keys(queryFilterValues).forEach(
     key => queryFilterValues[key] == null && delete queryFilterValues[key]
   );
@@ -673,8 +851,7 @@ function _getQueryFilterValues(params) {
   return queryFilterValues;
 }
 
-function _sortStringDates(s1, s2, sortModifier) {
-  // TODO: Delimiters are non-standard. Should we support them?
+function _sortStringDates(s1: Types.StudyMetadata, s2: Types.StudyMetadata, sortModifier: number) {
   const s1Date = moment(s1.date, ['YYYYMMDD', 'YYYY.MM.DD'], true);
   const s2Date = moment(s2.date, ['YYYYMMDD', 'YYYY.MM.DD'], true);
 
@@ -685,6 +862,7 @@ function _sortStringDates(s1, s2, sortModifier) {
   } else if (s2Date.isValid()) {
     return -1 * sortModifier;
   }
+  return 0;
 }
 
 export default WorkList;
