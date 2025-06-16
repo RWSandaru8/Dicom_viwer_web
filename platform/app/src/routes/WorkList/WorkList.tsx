@@ -589,39 +589,39 @@ function WorkList(props: WorkListProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="bg-primary-dark px-4 pt-3">
+          <div className="bg-[#F5F5F5] px-4 pt-3">
             {/* Stats Cards */}
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* First Card */}
-              <Card className="h-28 md:h-32">
+              <Card className="h-28 border-[#00A693] bg-white md:h-32">
                 {' '}
                 {/* Mobile: h-32 (8rem/128px), Desktop: h-40 (10rem/160px) */}
                 <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
                   <div>
-                    <span className="text-sm text-gray-400">Total Studies</span>
-                    <span className="block text-4xl font-bold text-gray-300 md:text-5xl">77</span>
-                    <span className="text-xs text-green-400 md:text-sm">
+                    <span className="text-sm text-[#475569]">Total Studies</span>
+                    <span className="block text-4xl font-bold text-[#333333] md:text-5xl">77</span>
+                    <span className="text-xs text-[#666666] md:text-sm">
                       &#9650; 12% from last month
                     </span>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 p-1 md:h-12 md:w-12">
-                    <FolderKanban className="h-6 w-6 text-gray-300 md:h-8 md:w-8" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border-[#00A693] bg-[#F5F5F5] p-1 md:h-12 md:w-12">
+                    <FolderKanban className="h-6 w-6 text-[#666666] md:h-8 md:w-8" />
                   </div>
                 </div>
               </Card>
 
               {/* Second Card */}
-              <Card className="h-28 md:h-32">
+              <Card className="h-28 border-[#00A693] bg-white md:h-32">
                 {' '}
                 {/* Same responsive height */}
                 <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
                   <div>
-                    <span className="text-sm text-gray-400">Today's Scans</span>
-                    <span className="block text-4xl font-bold text-gray-300 md:text-5xl">8</span>
-                    <span className="text-xs text-gray-400 md:text-sm">Last scan: 2:45 PM</span>
+                    <span className="text-sm text-[#475569]">Today's Scans</span>
+                    <span className="block text-4xl font-bold text-[#333333] md:text-5xl">8</span>
+                    <span className="text-xs text-[#666666] md:text-sm">Last scan: 2:45 PM</span>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 p-1 md:h-12 md:w-12">
-                    <Clock4 className="h-6 w-6 text-gray-300 md:h-8 md:w-8" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border-[#00A693] bg-[#F5F5F5] p-1 md:h-12 md:w-12">
+                    <Clock4 className="h-6 w-6 text-[#666666] md:h-8 md:w-8" />
                   </div>
                 </div>
               </Card>
@@ -682,7 +682,7 @@ function WorkList(props: WorkListProps) {
                     key={range}
                     variant="secondary"
                     size="small"
-                    className={`${selectedDateRange === range ? 'bg-primary-main text-black' : ''} whitespace-nowrap px-3`}
+                    className={`${selectedDateRange === range ? 'text-[#333333]' : 'bg-[#00A693] text-[#E2E8F0]'} whitespace-nowrap px-3`}
                     onClick={() => setSelectedDateRange(range)}
                   >
                     {range}

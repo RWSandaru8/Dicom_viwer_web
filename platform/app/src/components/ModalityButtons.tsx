@@ -19,7 +19,9 @@ export const ModalityButtons: React.FC<ModalityButtonsProps> = ({
           key={modality}
           variant="secondary"
           size="sm"
-          className={selectedModality === modality ? 'bg-primary-main text-black' : ''}
+          className={
+            selectedModality === modality ? 'bg-[#00A693] text-[#E2E8F0]' : 'text-[#333333]'
+          }
           onClick={() => onModalityChange(modality)}
         >
           {modality}
