@@ -7,6 +7,7 @@ import ViewerHeader from './ViewerHeader';
 import SidePanelWithServices from '../Components/SidePanelWithServices';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@ohif/ui-next';
 import useResizablePanels from './ResizablePanelsHook';
+import { Toolbar } from '../Toolbar/Toolbar';
 
 const resizableHandleClassName = 'mt-[1px] bg-black';
 
@@ -185,6 +186,27 @@ function ViewerLayout({
                     viewportComponents={viewportComponents}
                     commandsManager={commandsManager}
                   />
+                  {/* Glasslike Toolbar Sidebar Overlay */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      height: '100%',
+                      width: '80px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(20, 20, 20, 0.55)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      borderLeft: '1.5px solid rgba(80,80,80,0.25)',
+                      zIndex: 40,
+                    }}
+                  >
+                    <Toolbar buttonSection="primary" location={1} />
+                  </div>
                 </div>
               </div>
             </ResizablePanel>
