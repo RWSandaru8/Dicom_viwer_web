@@ -20,7 +20,9 @@ export const ModalityButtons: React.FC<ModalityButtonsProps> = ({
           variant="secondary"
           size="sm"
           className={
-            selectedModality === modality ? 'bg-[#00A693] text-[#E2E8F0]' : 'text-[#333333]'
+            selectedModality === modality
+              ? 'bg-[#00A693] text-[#E2E8F0]'
+              : 'bg-[#E5E5E5] text-[#333333]'
           }
           onClick={() => onModalityChange(modality)}
         >

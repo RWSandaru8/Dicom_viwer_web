@@ -640,10 +640,10 @@ function WorkList(props: WorkListProps) {
                     <Button
                       variant="ghost"
                       size="small"
-                      className="!ml-0 h-8 w-8 bg-gray-700 !pl-0 !pr-0 hover:bg-gray-700"
+                      className="!ml-0 h-8 w-8 bg-[#E5E5E5] !pl-0 !pr-0 hover:bg-gray-700"
                       onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                     >
-                      <CalendarDays className="h-4 w-4 text-white" />
+                      <CalendarDays className="h-4 w-4 text-[#333333]" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -682,8 +682,11 @@ function WorkList(props: WorkListProps) {
                     key={range}
                     variant="secondary"
                     size="small"
-                    className={`${selectedDateRange === range ? 'bg-[#00A693] text-[#E2E8F0]' : 'bg-[#F5F5F5] text-[#333333]'} whitespace-nowrap px-3`}
-                    onClick={() => setSelectedDateRange(range)}
+                    className={`${selectedDateRange === range ? 'bg-[#00A693] text-white' : 'bg-[#E5E5E5] text-[#333333]'} border border-[#CBD5E1] hover:bg-[#F1F5F9]`}
+                    onClick={() => {
+                      setSelectedDateRange(range);
+                      // You may want to update the filterValues here based on the selected range
+                    }}
                   >
                     {range}
                   </Button>
@@ -694,24 +697,28 @@ function WorkList(props: WorkListProps) {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <InputFilter
                   value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchQuery(e.target.value)
-                  }
-                  placeholder="Search..."
+                  onChange={(value: string) => setSearchQuery(value)}
                   className="w-full md:w-64"
-                />
+                >
+                  <InputFilter.SearchIcon />
+                  <InputFilter.Input
+                    placeholder="Search..."
+                    className="border-[#CBD5E1] bg-[#E5E5E5] pl-9 pr-9"
+                  />
+                  <InputFilter.ClearButton />
+                </InputFilter>
                 <div className="flex gap-2">
                   <Button
                     variant="secondary"
                     size="small"
-                    className="flex-1 md:flex-none"
+                    className="flex-1 bg-[#E5E5E5] text-[#333333] md:flex-none"
                   >
                     Reset
                   </Button>
                   <Button
                     variant="default"
                     size="small"
-                    className="flex-1 md:flex-none"
+                    className="flex-1 bg-[#00A693] text-white md:flex-none"
                   >
                     Search
                   </Button>
@@ -722,7 +729,7 @@ function WorkList(props: WorkListProps) {
             {/* Modality and Source Filters - stacked on mobile */}
             <div className="mb-4 flex flex-col gap-3 pb-2 md:flex-row md:items-center md:justify-between">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <span className="text-gray-400">Modality:</span>
+                <span className="text-black">Modality:</span>
                 <ModalityButtons
                   modalities={availableModalities}
                   selectedModality={selectedModality}
@@ -732,7 +739,7 @@ function WorkList(props: WorkListProps) {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <span className="text-gray-400">Source:</span>
+                <span className="text-black">Source:</span>
                 <Select
                   value={selectedSource}
                   onValueChange={setSelectedSource}
