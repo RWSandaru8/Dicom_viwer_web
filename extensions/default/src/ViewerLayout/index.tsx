@@ -210,6 +210,7 @@ function ViewerLayout({
                       zIndex: 1,
                       boxShadow: '-6px 0 18px 0 rgba(0,0,0,0.18)',
                       pointerEvents: 'auto',
+                      marginLeft: '24px',
                     }}
                   >
                     <IconPresentationProvider size="large" IconContainer={ToolButton}>

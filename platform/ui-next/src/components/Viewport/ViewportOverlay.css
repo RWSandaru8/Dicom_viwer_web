@@ -2,7 +2,8 @@
   display: none;
 }
 .ViewportOverlay {
-  color: #333333;
+  color: #fff;
+  text-shadow: 0.8px 0.8px 0.5px rgba(0, 0, 0, 0.65);
 }
 .ViewportOverlay .overlay-element {
   position: absolute;
@@ -14,6 +15,9 @@
 }
 .overlay-bottom {
   bottom: 2.15rem;
+}
+.overlay-bottom.right-viewport-scrollbar {
+  right: 110px; /* move overlay text left to clear the sidebar (sidebar is 90px wide + 20px gap) */
 }
 
 /* Base text styling without shadow */
