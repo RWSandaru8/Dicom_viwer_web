@@ -44,7 +44,7 @@ const StudyListFilter = ({
     <React.Fragment>
       <div>
         <div className="bg-[#F5F5F5]">
-          <div className="container relative mx-auto flex flex-col pt-2">
+          <div className="container relative mx-auto flex flex-col pt-0">
             <div className="mb-5 flex flex-row justify-between">
               <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
                 <Typography
