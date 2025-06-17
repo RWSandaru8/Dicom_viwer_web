@@ -70,6 +70,8 @@ function ViewerLayout({
   const [viewportGrid] = useViewportGrid();
   const { activeViewportId } = viewportGrid;
 
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
   /**
    * Set body classes (tailwindcss) that don't allow vertical
    * or horizontal overflow (no scrolling). Also guarantee window
@@ -153,6 +155,8 @@ function ViewerLayout({
         extensionManager={extensionManager}
         servicesManager={servicesManager}
         appConfig={appConfig}
+        expandedGroup={expandedGroup}
+        setExpandedGroup={setExpandedGroup}
       />
       <div
         className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-black"
@@ -203,10 +207,10 @@ function ViewerLayout({
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: 'rgba(20, 20, 20, 0.55)',
+                      background: 'rgba(20, 20, 20, 0.25)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
-                      borderLeft: '1.5px solid rgba(80,80,80,0.25)',
+                      borderLeft: '1.5px solid rgba(80,80,80,0.15)',
                       zIndex: 1,
                       boxShadow: '-6px 0 18px 0 rgba(0,0,0,0.18)',
                       pointerEvents: 'auto',
@@ -226,7 +230,7 @@ function ViewerLayout({
                         paddingBottom: '32px',
                         gap: '18px',
                       }}>
-                        <Toolbar buttonSection="primary" location={1} viewportId={activeViewportId} />
+                        <Toolbar buttonSection="primary" location={1} viewportId={activeViewportId} expandedGroup={expandedGroup} setExpandedGroup={setExpandedGroup} />
                       </div>
                     </IconPresentationProvider>
                   </div>
