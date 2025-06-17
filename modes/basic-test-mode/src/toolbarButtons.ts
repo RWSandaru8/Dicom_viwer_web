@@ -46,6 +46,8 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.toolButtonList',
     props: {
       buttonSection: true,
+      hasDropdown: true,
+      icon: 'tool-length',
     },
   },
   {
@@ -53,6 +55,8 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.toolButtonList',
     props: {
       buttonSection: true,
+      hasDropdown: true,
+      icon: 'tool-more-menu',
     },
   },
   {
@@ -60,6 +64,8 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.toolButtonList',
     props: {
       buttonSection: true,
+      hasDropdown: true,
+      icon: 'WindowLevel',
     },
   },
 

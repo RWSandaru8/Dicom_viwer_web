@@ -9,8 +9,10 @@ import HeaderPatientInfo from './HeaderPatientInfo';
 import { PatientInfoVisibility } from './HeaderPatientInfo/HeaderPatientInfo';
 import { preserveQueryParameters } from '@ohif/app';
 import { Types } from '@ohif/core';
+import ToolButtonListWrapper from '../Toolbar/ToolButtonListWrapper';
+import { ToolButton } from '@ohif/ui-next';
 
-function ViewerHeader({ appConfig }: withAppTypes<{ appConfig: AppTypes.Config }>) {
+function ViewerHeader({ appConfig, expandedGroup, setExpandedGroup }: withAppTypes<{ appConfig: AppTypes.Config, expandedGroup: string | null, setExpandedGroup: (id: string | null) => void }>) {
   const { servicesManager, extensionManager, commandsManager } = useSystem();
   const { customizationService } = servicesManager.services;
 
@@ -119,7 +121,16 @@ function ViewerHeader({ appConfig }: withAppTypes<{ appConfig: AppTypes.Config }
         </div>
       }
     >
-      <div className="relative flex justify-center gap-[4px]" />
+      <div className="relative flex justify-center gap-[4px]">
+        {expandedGroup ? (
+          <ToolButtonListWrapper
+            buttonSection={expandedGroup}
+            id={expandedGroup + "Header"}
+            horizontalInHeader={true}
+            onInteraction={() => setExpandedGroup(null)}
+          />
+        ) : null}
+      </div>
     </Header>
   );
 }
