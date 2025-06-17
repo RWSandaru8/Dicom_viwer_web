@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import LegacyButton from '../LegacyButton';
 import Typography from '../Typography';
 import InputGroup from '../InputGroup';
-import { Icons } from '@ohif/ui-next';
+import { Icons, useModal } from '@ohif/ui-next';
+import AddStudyModalContent from '../../../../../extensions/default/src/Components/AddStudyModal';
 
 const StudyListFilter = ({
   filtersMeta,
@@ -18,6 +19,7 @@ const StudyListFilter = ({
   getDataSourceConfigurationComponent,
 }) => {
   const { t } = useTranslation('StudyList');
+  const { show } = useModal();
   const { sortBy, sortDirection } = filterValues;
   const filterSorting = { sortBy, sortDirection };
   const setFilterSorting = sortingValues => {
@@ -28,16 +30,27 @@ const StudyListFilter = ({
   };
   const isSortingEnabled = numOfStudies > 0 && numOfStudies <= 100;
 
+  const handleNewStudyClick = () => {
+    show({
+      title: t('Add New Study'),
+      content: AddStudyModalContent,
+      containerClassName: 'w-[800px]',
+      shouldCloseOnEsc: true,
+      shouldCloseOnOverlayClick: true,
+    });
+  };
+
   return (
     <React.Fragment>
       <div>
-        <div className="bg-black">
-          <div className="container relative mx-auto flex flex-col pt-5">
+        <div className="bg-[#F5F5F5]">
+          <div className="container relative mx-auto flex flex-col pt-2">
             <div className="mb-5 flex flex-row justify-between">
               <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
                 <Typography
+                  component="h6"
                   variant="h6"
-                  className="text-white"
+                  className="text-[#333333]"
                 >
                   {t('StudyList')}
                 </Typography>
@@ -64,23 +77,34 @@ const StudyListFilter = ({
                     startIcon={<Icons.Cancel />}
                     onClick={clearFilters}
                   >
-                    {t('ClearFilters')}
+                    <span>{t('ClearFilters')}</span>
                   </LegacyButton>
                 )}
 
                 <Typography
+                  component="h6"
                   variant="h6"
-                  className="mr-2"
+                  className="mr-2 text-[#333333]"
                   data-cy={'num-studies'}
                 >
                   {numOfStudies > 100 ? '>100' : numOfStudies}
                 </Typography>
                 <Typography
                   variant="h6"
-                  className="text-primary-light"
+                  className="text-[#333333]"
                 >
-                  {`${t('Studies')} `}
+                  {`${t('Studies')} `}
                 </Typography>
+                <LegacyButton
+                  rounded="full"
+                  variant="outlined"
+                  color="primaryActive"
+                  border="primaryActive"
+                  className="ml-4"
+                  onClick={handleNewStudyClick}
+                >
+                  <span>+ New Study</span>
+                </LegacyButton>
               </div>
             </div>
           </div>

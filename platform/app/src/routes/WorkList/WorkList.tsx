@@ -575,7 +575,7 @@ function WorkList(props: WorkListProps) {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-black">
+    <div className="flex h-screen flex-col bg-[#F5F5F5]">
       <Header
         isSticky
         menuOptions={menuOptions}
