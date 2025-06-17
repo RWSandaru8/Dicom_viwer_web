@@ -42,75 +42,69 @@ const StudyListFilter = ({
 
   return (
     <React.Fragment>
-      <div>
-        <div className="bg-[#F5F5F5]">
-          <div className="container relative mx-auto flex flex-col pt-0">
-            <div className="mb-5 flex flex-row justify-between">
-              <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
-                <Typography
-                  component="h6"
-                  variant="h6"
-                  className="text-[#333333]"
-                >
-                  {t('StudyList')}
-                </Typography>
-                {getDataSourceConfigurationComponent && getDataSourceConfigurationComponent()}
-                {onUploadClick && (
-                  <div
-                    className="text-primary-active flex cursor-pointer items-center gap-2 self-center text-lg font-semibold"
-                    onClick={onUploadClick}
-                  >
-                    <Icons.Upload />
-                    <span>{t('Upload')}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex h-[34px] flex-row items-center">
-                {/* TODO revisit the completely rounded style of button used for clearing the study list filter - for now use LegacyButton*/}
-                {isFiltering && (
-                  <LegacyButton
-                    rounded="full"
-                    variant="outlined"
-                    color="primaryActive"
-                    border="primaryActive"
-                    className="mx-8"
-                    startIcon={<Icons.Cancel />}
-                    onClick={clearFilters}
-                  >
-                    <span>{t('ClearFilters')}</span>
-                  </LegacyButton>
-                )}
-
-                <Typography
-                  component="h6"
-                  variant="h6"
-                  className="mr-2 text-[#333333]"
-                  data-cy={'num-studies'}
-                >
-                  {numOfStudies > 100 ? '>100' : numOfStudies}
-                </Typography>
-                <Typography
-                  variant="h6"
-                  className="text-[#333333]"
-                >
-                  {`${t('Studies')} `}
-                </Typography>
-                <LegacyButton
-                  rounded="full"
-                  variant="outlined"
-                  color="primaryActive"
-                  border="primaryActive"
-                  className="ml-4"
-                  onClick={handleNewStudyClick}
-                >
-                  <span>+ New Study</span>
-                </LegacyButton>
-              </div>
+      <div className="container relative mx-auto flex flex-row items-center justify-between bg-[#F5F5F5] py-4">
+        <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
+          <Typography
+            component="h6"
+            variant="h6"
+            className="text-[#333333]"
+          >
+            {t('StudyList')}
+          </Typography>
+          {getDataSourceConfigurationComponent && getDataSourceConfigurationComponent()}
+          {onUploadClick && (
+            <div
+              className="text-primary-active flex cursor-pointer items-center gap-2 self-center text-lg font-semibold"
+              onClick={onUploadClick}
+            >
+              <Icons.Upload />
+              <span>{t('Upload')}</span>
             </div>
-          </div>
+          )}
+        </div>
+        <div className="flex h-[34px] flex-row items-center">
+          {/* TODO revisit the completely rounded style of button used for clearing the study list filter - for now use LegacyButton*/}
+          {isFiltering && (
+            <LegacyButton
+              rounded="full"
+              variant="outlined"
+              color="primaryActive"
+              border="primaryActive"
+              className="mx-8"
+              startIcon={<Icons.Cancel />}
+              onClick={clearFilters}
+            >
+              {t('ClearFilters')}
+            </LegacyButton>
+          )}
+
+          {/*<Typography
+            component="h6"
+            variant="h6"
+            className="mr-2 text-[#333333]"
+            data-cy={'num-studies'}
+          >
+            {numOfStudies > 100 ? '>100' : numOfStudies}
+          </Typography>
+          <Typography
+            component="h6"
+            variant="h6"
+            className="text-[#333333]"
+          >
+            {`${t('Studies')} `}
+          </Typography>*/}
+          <LegacyButton
+            variant="outlined"
+            color="primaryActive"
+            border="primaryActive"
+            className="ml-4 !border-none !bg-[#00A693] !font-medium !text-white shadow-sm transition-all duration-200 hover:!bg-[#008A7A] hover:shadow-md"
+            onClick={handleNewStudyClick}
+          >
+            + New Study
+          </LegacyButton>
         </div>
       </div>
-      <div className="sticky -top-1 z-10 mx-auto border-b-4 border-black">
+      {/*<div className="sticky -top-1 z-10 mx-auto border-b-4 border-black">
         <div className="bg-primary-dark pt-3 pb-3">
           <InputGroup
             inputMeta={filtersMeta}
@@ -130,7 +124,7 @@ const StudyListFilter = ({
             </div>
           </div>
         )}
-      </div>
+      </div>*/}
     </React.Fragment>
   );
 };

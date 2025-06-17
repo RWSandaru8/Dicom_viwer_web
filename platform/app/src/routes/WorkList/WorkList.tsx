@@ -757,7 +757,7 @@ function WorkList(props: WorkListProps) {
           </div>
 
           {/* Main Study List Content */}
-          <div className="flex flex-1 flex-col">
+          <div className="m-0 flex flex-1 flex-col px-4">
             <StudyListFilter
               numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
               filtersMeta={filtersMeta}
