@@ -12,7 +12,7 @@ import { Types } from '@ohif/core';
 import ToolButtonListWrapper from '../Toolbar/ToolButtonListWrapper';
 import { ToolButton } from '@ohif/ui-next';
 
-function ViewerHeader({ appConfig, expandedGroup, setExpandedGroup }: withAppTypes<{ appConfig: AppTypes.Config, expandedGroup: string | null, setExpandedGroup: (id: string | null) => void }>) {
+function ViewerHeader({ appConfig }: withAppTypes<{ appConfig: AppTypes.Config }>) {
   const { servicesManager, extensionManager, commandsManager } = useSystem();
   const { customizationService } = servicesManager.services;
 
@@ -121,7 +121,7 @@ function ViewerHeader({ appConfig, expandedGroup, setExpandedGroup }: withAppTyp
         </div>
       }
     >
-      <div className="relative flex justify-center gap-[4px]">
+      {/*<div className="relative flex justify-center gap-[4px]">
         {expandedGroup ? (
           <ToolButtonListWrapper
             buttonSection={expandedGroup}
@@ -130,7 +130,7 @@ function ViewerHeader({ appConfig, expandedGroup, setExpandedGroup }: withAppTyp
             onInteraction={() => setExpandedGroup(null)}
           />
         ) : null}
-      </div>
+      </div>*/}
     </Header>
   );
 }

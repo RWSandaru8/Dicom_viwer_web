@@ -10,6 +10,7 @@ import useResizablePanels from './ResizablePanelsHook';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { useViewportGrid } from '@ohif/ui-next';
 import { IconPresentationProvider, ToolButton } from '@ohif/ui-next';
+import FloatingToolGroupBar from '../Toolbar/FloatingToolGroupBar';
 
 const resizableHandleClassName = 'mt-[1px] bg-black';
 
@@ -190,6 +191,11 @@ function ViewerLayout({
                   className="relative flex h-full flex-1 items-center justify-center overflow-hidden bg-black"
                   onMouseEnter={handleMouseEnter}
                 >
+                  {/* Floating tool group bar overlay */}
+                  <FloatingToolGroupBar
+                    buttonSection={expandedGroup}
+                    onClose={() => setExpandedGroup(null)}
+                  />
                   <ViewportGridComp
                     servicesManager={servicesManager}
                     viewportComponents={viewportComponents}
@@ -217,20 +223,31 @@ function ViewerLayout({
                       marginLeft: '24px',
                     }}
                   >
-                    <IconPresentationProvider size="large" IconContainer={ToolButton}>
-                      <div style={{
-                        pointerEvents: 'auto',
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        paddingTop: '32px',
-                        paddingBottom: '32px',
-                        gap: '18px',
-                      }}>
-                        <Toolbar buttonSection="primary" location={1} viewportId={activeViewportId} expandedGroup={expandedGroup} setExpandedGroup={setExpandedGroup} />
+                    <IconPresentationProvider
+                      size="large"
+                      IconContainer={ToolButton}
+                    >
+                      <div
+                        style={{
+                          pointerEvents: 'auto',
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          paddingTop: '32px',
+                          paddingBottom: '32px',
+                          gap: '18px',
+                        }}
+                      >
+                        <Toolbar
+                          buttonSection="primary"
+                          location={1}
+                          viewportId={activeViewportId}
+                          expandedGroup={expandedGroup}
+                          setExpandedGroup={setExpandedGroup}
+                        />
                       </div>
                     </IconPresentationProvider>
                   </div>
@@ -257,7 +274,7 @@ function ViewerLayout({
           </ResizablePanelGroup>
 
           {/* GPV MED text in bottom right corner */}
-          <div className="absolute bottom-2 right-12 text-white text-sm font-semibold z-50 bg-black px-2 py-1 rounded border border-gray-700">
+          <div className="absolute bottom-2 right-12 z-50 rounded border border-gray-700 bg-black px-2 py-1 text-sm font-semibold text-white">
             GPV MED
           </div>
         </React.Fragment>
