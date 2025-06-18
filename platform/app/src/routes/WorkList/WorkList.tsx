@@ -8,6 +8,7 @@ import isEqual from 'lodash.isequal';
 import { useTranslation } from 'react-i18next';
 import { Types } from '@ohif/core';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import NewStudyTable from './NewStudyTable';
 
 import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
@@ -18,7 +19,6 @@ import { FolderKanban, Clock4, CalendarDays } from 'lucide-react';
 import {
   StudyListExpandedRow,
   EmptyStudies,
-  StudyListTable,
   StudyListPagination,
   StudyListFilter,
   Button,
@@ -126,6 +126,12 @@ function WorkList(props: WorkListProps) {
   const searchParams = useSearchParams();
   const navigate = useNavigate();
   const STUDIES_LIMIT = 101;
+
+  const handleStudyClick = (studyId: string) => {
+    // Assuming the DICOM Viewer page route is '/viewer/:studyId'
+    navigate(`/viewer/${studyId}`);
+  };
+
   const queryFilterValues = _getQueryFilterValues(searchParams);
   const [sessionQueryFilterValues, updateSessionQueryFilterValues] = useSessionStorage({
     key: 'queryFilterValues',
@@ -165,6 +171,42 @@ function WorkList(props: WorkListProps) {
   const defaultSortValues =
     shouldUseDefaultSort && canSort ? { sortBy: 'studyDate', sortDirection: 'ascending' } : {};
   const { customizationService } = servicesManager.services;
+
+  const sampleStudies = [
+    {
+      ID: 'PID001',
+      Name: 'John Doe',
+      Report: 'Report_001.pdf',
+      Accession: 'ACC-203948',
+      Modality: 'CT',
+      Description: 'Head CT Scan',
+      Date: '2024-12-01',
+      Time: '10:15AM',
+      SourceAE: 'CT-SOURCE-AE',
+    },
+    {
+      ID: 'PID002',
+      Name: 'Jane Smith',
+      Report: 'Report_002.pdf',
+      Accession: 'ACC-203949',
+      Modality: 'MR',
+      Description: 'Knee MRI',
+      Date: '2024-12-02',
+      Time: '11:30AM',
+      SourceAE: 'MR-SOURCE-AE',
+    },
+    {
+      ID: 'PID003',
+      Name: 'Peter Jones',
+      Report: 'Report_003.pdf',
+      Accession: 'ACC-203950',
+      Modality: 'DX',
+      Description: 'Chest X-Ray',
+      Date: '2024-12-03',
+      Time: '09:00AM',
+      SourceAE: 'DX-SOURCE-AE',
+    },
+  ];
 
   const sortedStudies = useMemo(() => {
     if (!canSort) {
@@ -743,9 +785,9 @@ function WorkList(props: WorkListProps) {
                 <Select
                   value={selectedSource}
                   onValueChange={setSelectedSource}
-                  className="w-full sm:w-40"
+                  className="w-full text-black sm:w-40"
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-black">
                     <SelectValue placeholder="Select source" />
                   </SelectTrigger>
                   <SelectContent>
@@ -774,29 +816,107 @@ function WorkList(props: WorkListProps) {
             />
 
             {hasStudies ? (
-              <>
-                <StudyListTable
-                  tableDataSource={tableDataSource.slice(offset, offsetAndTake)}
-                  numOfStudies={numOfStudies}
-                  querying={querying}
-                  filtersMeta={filtersMeta}
-                  PatientInfo="disabled"
+              <div className="flex w-full flex-col">
+                {/* StudyList Table */}
+                <NewStudyTable
+                  studies={sampleStudies}
+                  onRowClick={handleStudyClick}
                 />
-                <StudyListPagination
-                  onChangePage={onPageNumberChange}
-                  onChangePerPage={onResultsPerPageChange}
-                  currentPage={pageNumber}
-                  perPage={resultsPerPage}
-                />
-              </>
-            ) : (
-              <div className="flex flex-1 items-center justify-center">
-                {appConfig.showLoadingIndicator && isLoadingData ? (
-                  <LoadingIndicatorProgress className="h-full w-full bg-black" />
-                ) : (
-                  <EmptyStudies />
+
+                {studiesTotal && studiesTotal > 100 && (
+                  <div className="bg-primary-dark w-full py-3 text-center text-base text-white opacity-80">
+                    {t(
+                      `Studies list capped at ${STUDIES_LIMIT - 1} studies. Please apply
+                      filters for a more specific search.`
+                    )}
+                  </div>
                 )}
+
+                <div className="flex items-center justify-between py-4">
+                  {/* Left section: 10 per page dropdown and showing X-Y of Z studies */}
+                  <div className="flex items-center space-x-4">
+                    <Select
+                      value={String(resultsPerPage)}
+                      onValueChange={value => onResultsPerPageChange(Number(value))}
+                    >
+                      <SelectTrigger className="w-[120px] bg-white text-black">
+                        <SelectValue placeholder="Results per page" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {[10, 25, 50, 100].map(num => (
+                          <SelectItem
+                            key={num}
+                            value={String(num)}
+                            className="hover:bg-gray-100"
+                          >
+                            {num} per page
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-gray-700">
+                      Showing {(pageNumber - 1) * resultsPerPage + 1} to{' '}
+                      {Math.min(pageNumber * resultsPerPage, studiesTotal)} of {studiesTotal}{' '}
+                      studies
+                    </span>
+                  </div>
+
+                  {/* Right section: Pagination controls */}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => onPageNumberChange(pageNumber - 1)}
+                      disabled={pageNumber === 1}
+                      className="border border-gray-300 bg-white text-black hover:bg-gray-100"
+                    >
+                      <Icons.ChevronLeft className="mr-1 h-4 w-4" /> Previous
+                    </Button>
+                    {[...Array(Math.ceil(studiesTotal / resultsPerPage)).keys()].map(i => {
+                      const page = i + 1;
+                      if (
+                        page === 1 ||
+                        page === Math.ceil(studiesTotal / resultsPerPage) ||
+                        (page >= pageNumber - 1 && page <= pageNumber + 1)
+                      ) {
+                        return (
+                          <Button
+                            key={page}
+                            variant={pageNumber === page ? 'default' : 'secondary'}
+                            onClick={() => onPageNumberChange(page)}
+                            className={
+                              pageNumber === page
+                                ? 'bg-[#00A693] text-white'
+                                : 'border border-gray-300 bg-white text-black hover:bg-gray-100'
+                            }
+                          >
+                            {page}
+                          </Button>
+                        );
+                      } else if (page === pageNumber - 2 || page === pageNumber + 2) {
+                        return (
+                          <span
+                            key={page}
+                            className="text-gray-700"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    })}
+                    <Button
+                      variant="secondary"
+                      onClick={() => onPageNumberChange(pageNumber + 1)}
+                      disabled={pageNumber * resultsPerPage >= studiesTotal}
+                      className="border border-gray-300 bg-white text-black hover:bg-gray-100"
+                    >
+                      Next <Icons.ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <EmptyStudies className="text-white" />
             )}
           </div>
         </ScrollArea>
