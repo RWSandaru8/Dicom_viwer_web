@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LegacyButton, InputText, Select } from '../../../../platform/ui/src/components';
 import Typography from '../../../../platform/ui/src/components/Typography';
+import axios from 'axios';
+import moment from 'moment';
 
 interface AddStudyModalContentProps {
   hide: () => void;
@@ -10,23 +12,83 @@ interface AddStudyModalContentProps {
 const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => {
   const { t } = useTranslation('AddStudyModal');
 
-  const [patientId, setPatientId] = React.useState('');
-  const [patientName, setPatientName] = React.useState('');
-  const [modality, setModality] = React.useState('');
-  const [serverType, setServerType] = React.useState('');
-  const [accessionNumber, setAccessionNumber] = React.useState('');
-  const [description, setDescription] = React.useState('');
+  const [patientId, setPatientId] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [modality, setModality] = useState('');
+  const [serverType, setServerType] = useState('');
+  const [accessionNumber, setAccessionNumber] = useState('');
+  const [description, setDescription] = useState('');
+  const [studyDate, setStudyDate] = useState('');
+  const [studyTime, setStudyTime] = useState('');
+  const [dicomFileUrl, setDicomFileUrl] = useState('');
+  const [reportFileUrl, setReportFileUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [dicomFileName, setDicomFileName] = useState('');
+  const [reportFileName, setReportFileName] = useState('');
+  
+  const dicomFileInputRef = useRef<HTMLInputElement>(null);
+  const reportFileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadStudy = () => {
-    console.log('Upload Study clicked', {
-      patientId,
-      patientName,
-      modality,
-      serverType,
-      accessionNumber,
-      description,
-    });
-    hide();
+  const handleDicomFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setDicomFileName(file.name);
+      // In a real implementation, you would upload this file to a server and get a URL back
+      // For now, we'll just use a placeholder URL that includes the filename
+      setDicomFileUrl(`/uploads/dicom/${file.name}`);
+    }
+  };
+
+  const handleReportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setReportFileName(file.name);
+      // In a real implementation, you would upload this file to a server and get a URL back
+      // For now, we'll just use a placeholder URL that includes the filename
+      setReportFileUrl(`/uploads/reports/${file.name}`);
+    }
+  };
+
+  const handleUploadStudy = async () => {
+    try {
+      if (!patientId || !patientName || !modality) {
+        setError('Patient ID, Patient Name, and Modality are required fields.');
+        return;
+      }
+
+      setIsSubmitting(true);
+      setError('');
+      
+      // Use the selected date and time or default to current date/time
+      const date = studyDate ? studyDate.replace(/-/g, '') : moment().format('YYYYMMDD');
+      const time = studyTime ? studyTime.replace(/:/g, '') : moment().format('HHmmss');
+      
+      const studyData = {
+        id: patientId, // Using patientId as the study id
+        name: patientName,
+        report_file_url: reportFileUrl || `default-report-${Date.now()}.pdf`,
+        dicom_file_url: dicomFileUrl || `default-dicom-${Date.now()}.dcm`,
+        accession: accessionNumber,
+        modularity: modality,
+        description: description,
+        date: date,
+        time: time
+      };
+      
+      console.log('Sending study data:', studyData);
+      
+      // Send the data to the backend
+      const response = await axios.post('http://localhost:5000/api/studies', studyData);
+      
+      console.log('Study added successfully:', response.data);
+      hide();
+    } catch (err) {
+      console.error('Error adding study:', err);
+      setError('Failed to add study. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,37 +98,50 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         <InputText
           id="patient-id"
-          label={t('Patient ID')}
+          label={t('Patient ID') + ' *'}
           value={patientId}
           onChange={value => setPatientId(value)}
           className="text-sm"
+          required
         />
         <InputText
           id="patient-name"
-          label={t('Patient Name')}
+          label={t('Patient Name') + ' *'}
           value={patientName}
           onChange={value => setPatientName(value)}
           className="text-sm"
+          required
         />
-        <Select
-          id="modality"
-          options={[
-            { value: 'CT', label: 'CT' },
-            { value: 'MR', label: 'MR' },
-          ]}
-          value={modality}
-          onChange={value => setModality(value)}
-          placeholder={t('Select Modality')}
-          className="text-sm"
-        />
-        <Select
-          id="server-type"
-          options={[{ value: 'DICOMweb', label: 'DICOMweb' }]}
-          value={serverType}
-          onChange={value => setServerType(value)}
-          placeholder={t('Select Server Type')}
-          className="text-sm"
-        />
+        <div className="w-full">
+          <label className="mb-1 block text-sm font-medium text-gray-900">Modality *</label>
+          <select 
+            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" 
+            value={modality} 
+            onChange={(e) => setModality(e.target.value)}
+            required
+          >
+            <option value="">Select Modality</option>
+            <option value="CT">CT</option>
+            <option value="MR">MR</option>
+            <option value="DX">DX</option>
+            <option value="CR">CR</option>
+            <option value="US">US</option>
+            <option value="XA">XA</option>
+          </select>
+        </div>
+        <div className="w-full">
+          <label className="mb-1 block text-sm font-medium text-gray-900">Server Type</label>
+          <select 
+            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" 
+            value={serverType} 
+            onChange={(e) => setServerType(e.target.value)}
+          >
+            <option value="">Select Server Type</option>
+            <option value="DICOMweb">DICOMweb</option>
+            <option value="DIMSE">DIMSE</option>
+            <option value="WADO">WADO</option>
+          </select>
+        </div>
         <InputText
           id="accession-number"
           label={t('Accession Number')}
@@ -74,6 +149,24 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
           onChange={value => setAccessionNumber(value)}
           className="text-sm"
         />
+        <div className="w-full">
+          <label className="mb-1 block text-sm font-medium text-gray-900">Study Date</label>
+          <input 
+            type="date" 
+            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none"
+            value={studyDate}
+            onChange={(e) => setStudyDate(e.target.value)}
+          />
+        </div>
+        <div className="w-full">
+          <label className="mb-1 block text-sm font-medium text-gray-900">Study Time</label>
+          <input 
+            type="time" 
+            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none"
+            value={studyTime}
+            onChange={(e) => setStudyTime(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="mb-4">
@@ -86,25 +179,56 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
         />
       </div>
 
-      <div className="mb-4 rounded border-2 border-dashed border-gray-300 p-6 text-center">
+      <div className="mb-4 cursor-pointer rounded border-2 border-dashed border-gray-300 p-6 text-center" onClick={() => dicomFileInputRef.current?.click()}>
+        <input 
+          type="file" 
+          ref={dicomFileInputRef}
+          className="hidden" 
+          accept=".dcm,.zip"
+          onChange={handleDicomFileChange}
+        />
         <p className="mb-1 text-base font-medium text-gray-800">{t('DICOM Files')}</p>
-        <p className="text-sm text-gray-500">{t('Upload a file or drag and drop')}</p>
-        <p className="text-xs text-gray-400">{t('PDF, DOC, DOCX files up to 10MB')}</p>
+        {dicomFileName ? (
+          <p className="text-sm text-green-600">{dicomFileName}</p>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500">{t('Click to upload a DICOM file')}</p>
+            <p className="text-xs text-gray-400">{t('DICOM files (.dcm) or ZIP archives up to 10MB')}</p>
+          </>
+        )}
       </div>
 
-      <div className="mb-6 rounded border-2 border-dashed border-gray-300 p-6 text-center">
+      <div className="mb-6 cursor-pointer rounded border-2 border-dashed border-gray-300 p-6 text-center" onClick={() => reportFileInputRef.current?.click()}>
+        <input 
+          type="file" 
+          ref={reportFileInputRef}
+          className="hidden" 
+          accept=".pdf,.doc,.docx"
+          onChange={handleReportFileChange}
+        />
         <p className="mb-1 text-base font-medium text-gray-800">{t('Report Files')}</p>
-        <p className="text-sm text-gray-500">{t('Upload a file or drag and drop')}</p>
-        <p className="text-xs text-gray-400">
-          {t('DICOM files (.dcm) or ZIP archives up to 10MB')}
-        </p>
+        {reportFileName ? (
+          <p className="text-sm text-green-600">{reportFileName}</p>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500">{t('Click to upload a report file')}</p>
+            <p className="text-xs text-gray-400">{t('PDF, DOC, DOCX files up to 10MB')}</p>
+          </>
+        )}
       </div>
+
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-3 text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <LegacyButton
           onClick={hide}
           variant="outlined"
           className="border-gray-300 text-gray-700"
+          disabled={isSubmitting}
         >
           {t('Cancel')}
         </LegacyButton>
@@ -112,8 +236,9 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
           onClick={handleUploadStudy}
           variant="contained"
           className="bg-emerald-500 text-white hover:bg-emerald-600"
+          disabled={isSubmitting}
         >
-          {t('Upload Study')}
+          {isSubmitting ? t('Uploading...') : t('Upload Study')}
         </LegacyButton>
       </div>
     </div>

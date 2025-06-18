@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Link, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import qs from 'query-string';
+import axios from 'axios';
 import isEqual from 'lodash.isequal';
 import { useTranslation } from 'react-i18next';
 import { Types } from '@ohif/core';
@@ -127,6 +128,66 @@ function WorkList(props: WorkListProps) {
   const navigate = useNavigate();
   const STUDIES_LIMIT = 101;
 
+  // Function to fetch studies from the DICOM backend
+  const fetchStudiesFromBackend = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/studies');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching studies from backend:', error);
+      return [];
+    }
+  };
+
+  // State to store backend studies
+  const [backendStudies, setBackendStudies] = useState([]);
+  const [isLoadingBackendStudies, setIsLoadingBackendStudies] = useState(false);
+
+  // Fetch studies from backend when component mounts
+  useEffect(() => {
+    const getBackendStudies = async () => {
+      setIsLoadingBackendStudies(true);
+      try {
+        const fetchedStudies = await fetchStudiesFromBackend();
+        console.log('Raw studies from backend:', fetchedStudies);
+
+        // Map backend studies to the format expected by the NewStudyTable component
+        const mappedStudies = fetchedStudies.map(study => ({
+          // These fields match the NewStudyTable.tsx interface
+          ID: study.id || '',
+          Name: study.name || 'Unknown',
+          Report: study.report_file_url ? study.report_file_url.split('/').pop() : 'No Report',
+          Accession: study.accession || '',
+          Modality: study.modularity || '',
+          Description: study.description || '',
+          Date: study.date ? `${study.date.slice(0, 4)}-${study.date.slice(5, 7)}-${study.date.slice(8, 10)}` : '',
+          Time: study.time ? `${study.time.slice(0, 2)}:${study.time.slice(3, 5)}` : '',
+          SourceAE: 'Local',
+
+          // Keep these for internal use
+          studyInstanceUid: study.id,
+          dicomFileUrl: study.dicom_file_url || '',
+          reportFileUrl: study.report_file_url || ''
+        }));
+
+        setBackendStudies(mappedStudies);
+        console.log('Mapped studies for table:', mappedStudies);
+      } catch (error) {
+        console.error('Error processing backend studies:', error);
+      } finally {
+        setIsLoadingBackendStudies(false);
+      }
+    };
+
+    getBackendStudies();
+  }, []);
+
+  // Only use studies from backend
+  const combinedStudies = useMemo(() => {
+    // Only use backend studies
+    return backendStudies;
+  }, [backendStudies]);
+
   const handleStudyClick = (studyId: string) => {
     // Assuming the DICOM Viewer page route is '/viewer/:studyId'
     navigate(`/viewer/${studyId}`);
@@ -159,7 +220,7 @@ function WorkList(props: WorkListProps) {
   const [selectedDateRange, setSelectedDateRange] = useState('');
   const [selectedModality, setSelectedModality] = useState('All');
   const [selectedSource, setSelectedSource] = useState('All Sources');
-  const [availableModalities] = useState<string[]>(['All', 'CT', 'MR', 'DX', 'IO', 'CR']);
+  const [availableModalities] = useState<string[]>(['All', 'CT', 'MRI', 'DX', 'IO', 'CR']);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const debouncedFilterValues = useDebounce(filterValues, 200);
@@ -171,42 +232,6 @@ function WorkList(props: WorkListProps) {
   const defaultSortValues =
     shouldUseDefaultSort && canSort ? { sortBy: 'studyDate', sortDirection: 'ascending' } : {};
   const { customizationService } = servicesManager.services;
-
-  const sampleStudies = [
-    {
-      ID: 'PID001',
-      Name: 'John Doe',
-      Report: 'Report_001.pdf',
-      Accession: 'ACC-203948',
-      Modality: 'CT',
-      Description: 'Head CT Scan',
-      Date: '2024-12-01',
-      Time: '10:15AM',
-      SourceAE: 'CT-SOURCE-AE',
-    },
-    {
-      ID: 'PID002',
-      Name: 'Jane Smith',
-      Report: 'Report_002.pdf',
-      Accession: 'ACC-203949',
-      Modality: 'MR',
-      Description: 'Knee MRI',
-      Date: '2024-12-02',
-      Time: '11:30AM',
-      SourceAE: 'MR-SOURCE-AE',
-    },
-    {
-      ID: 'PID003',
-      Name: 'Peter Jones',
-      Report: 'Report_003.pdf',
-      Accession: 'ACC-203950',
-      Modality: 'DX',
-      Description: 'Chest X-Ray',
-      Date: '2024-12-03',
-      Time: '09:00AM',
-      SourceAE: 'DX-SOURCE-AE',
-    },
-  ];
 
   const sortedStudies = useMemo(() => {
     if (!canSort) {
@@ -276,12 +301,12 @@ function WorkList(props: WorkListProps) {
     });
   };
 
-  useEffect(() => {
-    document.body.classList.add('bg-black');
+  /*useEffect(() => {
+    document.body.classList.add('bg-white');
     return () => {
-      document.body.classList.remove('bg-black');
+      document.body.classList.remove('bg-white');
     };
-  }, []);
+  }, []);*/
 
   useEffect(() => {
     if (!debouncedFilterValues) {
@@ -617,7 +642,7 @@ function WorkList(props: WorkListProps) {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-[#F5F5F5]">
+    <div className="flex h-screen flex-col bg-white">{/*check*/}
       <Header
         isSticky
         menuOptions={menuOptions}
@@ -631,7 +656,7 @@ function WorkList(props: WorkListProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="bg-[#F5F5F5] px-4 pt-3">
+          <div className="bg-white px-4 pt-3">{/*check*/}
             {/* Stats Cards */}
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* First Card */}
@@ -799,7 +824,7 @@ function WorkList(props: WorkListProps) {
           </div>
 
           {/* Main Study List Content */}
-          <div className="m-0 flex flex-1 flex-col px-4">
+          <div className="m-0 flex flex-1 flex-col px-4 !text-black">
             <StudyListFilter
               numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
               filtersMeta={filtersMeta}
@@ -814,110 +839,23 @@ function WorkList(props: WorkListProps) {
                   : undefined
               }
             />
-
-            {hasStudies ? (
-              <div className="flex w-full flex-col">
-                {/* StudyList Table */}
-                <NewStudyTable
-                  studies={sampleStudies}
-                  onRowClick={handleStudyClick}
-                />
-
-                {studiesTotal && studiesTotal > 100 && (
-                  <div className="bg-primary-dark w-full py-3 text-center text-base text-white opacity-80">
-                    {t(
-                      `Studies list capped at ${STUDIES_LIMIT - 1} studies. Please apply
-                      filters for a more specific search.`
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between py-4">
-                  {/* Left section: 10 per page dropdown and showing X-Y of Z studies */}
-                  <div className="flex items-center space-x-4">
-                    <Select
-                      value={String(resultsPerPage)}
-                      onValueChange={value => onResultsPerPageChange(Number(value))}
-                    >
-                      <SelectTrigger className="w-[120px] bg-white text-black">
-                        <SelectValue placeholder="Results per page" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {[10, 25, 50, 100].map(num => (
-                          <SelectItem
-                            key={num}
-                            value={String(num)}
-                            className="hover:bg-gray-100"
-                          >
-                            {num} per page
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-gray-700">
-                      Showing {(pageNumber - 1) * resultsPerPage + 1} to{' '}
-                      {Math.min(pageNumber * resultsPerPage, studiesTotal)} of {studiesTotal}{' '}
-                      studies
-                    </span>
-                  </div>
-
-                  {/* Right section: Pagination controls */}
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => onPageNumberChange(pageNumber - 1)}
-                      disabled={pageNumber === 1}
-                      className="border border-gray-300 bg-white text-black hover:bg-gray-100"
-                    >
-                      <Icons.ChevronLeft className="mr-1 h-4 w-4" /> Previous
-                    </Button>
-                    {[...Array(Math.ceil(studiesTotal / resultsPerPage)).keys()].map(i => {
-                      const page = i + 1;
-                      if (
-                        page === 1 ||
-                        page === Math.ceil(studiesTotal / resultsPerPage) ||
-                        (page >= pageNumber - 1 && page <= pageNumber + 1)
-                      ) {
-                        return (
-                          <Button
-                            key={page}
-                            variant={pageNumber === page ? 'default' : 'secondary'}
-                            onClick={() => onPageNumberChange(page)}
-                            className={
-                              pageNumber === page
-                                ? 'bg-[#00A693] text-white'
-                                : 'border border-gray-300 bg-white text-black hover:bg-gray-100'
-                            }
-                          >
-                            {page}
-                          </Button>
-                        );
-                      } else if (page === pageNumber - 2 || page === pageNumber + 2) {
-                        return (
-                          <span
-                            key={page}
-                            className="text-gray-700"
-                          >
-                            ...
-                          </span>
-                        );
-                      }
-                      return null;
-                    })}
-                    <Button
-                      variant="secondary"
-                      onClick={() => onPageNumberChange(pageNumber + 1)}
-                      disabled={pageNumber * resultsPerPage >= studiesTotal}
-                      className="border border-gray-300 bg-white text-black hover:bg-gray-100"
-                    >
-                      Next <Icons.ChevronRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <EmptyStudies className="text-white" />
-            )}
+            <NewStudyTable
+              studies={combinedStudies}
+              onClickRow={handleStudyClick}
+              className="text-gray-900 bg-white"
+            />{/*check*/}
+            <StudyListPagination
+              currentPage={pageNumber}
+              totalPages={Math.ceil(combinedStudies.length / resultsPerPage)}
+              onPageNumberChange={onPageNumberChange}
+              onResultsPerPageChange={onResultsPerPageChange}
+              resultsPerPage={resultsPerPage}
+              resultsPerPageOptions={[10, 25, 50, 100]}
+              isLoading={isLoadingData || isLoadingBackendStudies}
+            />
+            {!hasStudies && (
+              <EmptyStudies className="text-gray-900" />
+            )}{/*check*/}
           </div>
         </ScrollArea>
       </div>
