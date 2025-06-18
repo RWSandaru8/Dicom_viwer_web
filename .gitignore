@@ -14,7 +14,7 @@ coverage/
 .nx/
 addOns/yarn.lock
 playwright-report/
-
+DICOM_backend
 # YALC (for Erik)
 .yalc
 yalc.lock
