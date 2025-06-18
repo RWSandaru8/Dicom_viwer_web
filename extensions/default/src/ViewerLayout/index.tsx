@@ -213,14 +213,16 @@ function ViewerLayout({
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: 'rgba(20, 20, 20, 0.25)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      borderLeft: '1.5px solid rgba(80,80,80,0.15)',
+                      background: 'transparent',
+                      backdropFilter: 'none',
+                      WebkitBackdropFilter: 'none',
+                      borderLeft: 'none',
                       zIndex: 1,
-                      boxShadow: '-6px 0 18px 0 rgba(0,0,0,0.18)',
+                      boxShadow: 'none',
                       pointerEvents: 'auto',
                       marginLeft: '24px',
+                      paddingTop: '32px',
+                      paddingBottom: '32px',
                     }}
                   >
                     <IconPresentationProvider
@@ -236,8 +238,6 @@ function ViewerLayout({
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          paddingTop: '32px',
-                          paddingBottom: '32px',
                           gap: '18px',
                         }}
                       >
@@ -274,9 +274,9 @@ function ViewerLayout({
           </ResizablePanelGroup>
 
           {/* GPV MED text in bottom right corner */}
-          <div className="absolute bottom-2 right-12 z-50 rounded border border-gray-700 bg-black px-2 py-1 text-sm font-semibold text-white">
+          {/*<div className="absolute bottom-2 right-12 z-50 rounded border border-gray-700 bg-black px-2 py-1 text-sm font-semibold text-white">
             GPV MED
-          </div>
+          </div>*/}
         </React.Fragment>
       </div>
     </div>

@@ -28,7 +28,7 @@ const NavBar = ({
       style={
         isInDicomViewer
           ? {
-              background: 'transparent',
+              background: '#004D45',
               WebkitBackdropFilter: 'none',
               backdropFilter: 'none',
               borderBottom: 'none',

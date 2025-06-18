@@ -7,7 +7,7 @@ import { useIconPresentation } from '../../contextProviders/IconPresentationProv
 
 const baseClasses = '!rounded-lg inline-flex items-center justify-center';
 const defaultClasses = 'bg-transparent text-foreground/80 hover:bg-background hover:text-highlight';
-const activeClasses = 'bg-highlight text-background hover:!bg-highlight/80';
+const activeClasses = 'bg-[#00A693] text-background hover:!bg-highlight/80';
 const disabledClasses =
   'text-common-bright hover:bg-primary-dark hover:text-primary-light opacity-40 cursor-not-allowed';
 
@@ -39,6 +39,7 @@ interface ToolButtonProps {
   onInteraction?: (details: { itemId: string; commands?: Record<string, unknown> }) => void;
   className?: string;
   children?: React.ReactNode;
+  showLabelBelowIcon?: boolean;
 }
 
 function ToolButton(props: ToolButtonProps) {
@@ -55,6 +56,7 @@ function ToolButton(props: ToolButtonProps) {
     onInteraction,
     className,
     children,
+    showLabelBelowIcon = false,
   } = props;
 
   const { className: iconClassName } = useIconPresentation();
@@ -70,8 +72,39 @@ function ToolButton(props: ToolButtonProps) {
   const defaultTooltip = label;
   const disabledTooltip = disabled && disabledText ? disabledText : null;
   const hasSecondaryTooltip = tooltip || disabledTooltip;
-
   const showTooltip = hasSecondaryTooltip || defaultTooltip;
+
+  if (showLabelBelowIcon) {
+    // Always show label below icon, no tooltip
+    return (
+      <div className="flex flex-col items-center">
+        <Button
+          className={buttonClasses}
+          onClick={() => {
+            if (!disabled) {
+              onInteraction?.({ itemId: id, commands });
+            }
+          }}
+          variant="ghost"
+          size="icon"
+          aria-label={label}
+          disabled={disabled}
+        >
+          {children || (
+            <Icons.ByName
+              name={icon}
+              className={iconClassName || iconSizeClass}
+            />
+          )}
+        </Button>
+        {label && (
+          <span className="mt-1 max-w-[80px] truncate text-center text-xs leading-tight text-white">
+            {label}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Tooltip>

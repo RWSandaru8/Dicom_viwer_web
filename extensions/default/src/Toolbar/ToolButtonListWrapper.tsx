@@ -25,7 +25,14 @@ interface ToolButtonListWrapperProps {
  * @returns Component
  * // test
  */
-export default function ToolButtonListWrapper({ buttonSection, id, horizontalInHeader = false, sidebarTriggerOnly = false, onSidebarTrigger, isActive = false }: ToolButtonListWrapperProps) {
+export default function ToolButtonListWrapper({
+  buttonSection,
+  id,
+  horizontalInHeader = false,
+  sidebarTriggerOnly = false,
+  onSidebarTrigger,
+  isActive = false,
+}: ToolButtonListWrapperProps) {
   const { onInteraction, toolbarButtons } = useToolbar({
     buttonSection,
   });
@@ -42,26 +49,29 @@ export default function ToolButtonListWrapper({ buttonSection, id, horizontalInH
 
   if (sidebarTriggerOnly) {
     return (
-      <ToolButton
-        key={primary.id}
-        {...primary}
-        isActive={isActive}
-        onInteraction={() => onSidebarTrigger?.()}
-        className={primary.className}
-      />
+      <div className="flex flex-col items-center gap-4">
+        {items.map(item => (
+          <ToolButton
+            key={item.id}
+            {...item}
+            isActive={isActive && item.id === primary.id}
+            onInteraction={() => onSidebarTrigger?.()}
+            className={item.className}
+            showLabelBelowIcon={true}
+          />
+        ))}
+      </div>
     );
   }
 
   if (horizontalInHeader) {
     return (
-      <div className="flex flex-row gap-2 items-center">
+      <div className="flex flex-row items-center gap-2">
         {items.map(item => (
           <ToolButton
             key={item.id}
             {...item}
-            onInteraction={({ itemId }) =>
-              onInteraction?.({ id, itemId, commands: item.commands })
-            }
+            onInteraction={({ itemId }) => onInteraction?.({ id, itemId, commands: item.commands })}
             className={item.className}
           />
         ))}
