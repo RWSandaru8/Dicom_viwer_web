@@ -49,18 +49,14 @@ export default function ToolButtonListWrapper({
 
   if (sidebarTriggerOnly) {
     return (
-      <div className="flex flex-col items-center gap-4">
-        {items.map(item => (
-          <ToolButton
-            key={item.id}
-            {...item}
-            isActive={isActive && item.id === primary.id}
-            onInteraction={() => onSidebarTrigger?.()}
-            className={item.className}
-            showLabelBelowIcon={true}
-          />
-        ))}
-      </div>
+      <ToolButton
+        key={primary.id}
+        {...primary}
+        isActive={isActive}
+        onInteraction={() => onSidebarTrigger?.()}
+        className={primary.className}
+        showLabelBelowIcon={true}
+      />
     );
   }
 
