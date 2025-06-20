@@ -55,14 +55,38 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       setIsSubmitting(true);
       setError('');
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Build multipart form data
+      const formData = new FormData();
+      formData.append('id', patientId);
+      formData.append('name', patientName);
+      formData.append('accession', accessionNumber);
+      formData.append('modularity', modality);
+      formData.append('description', description);
+      formData.append('date', studyDate);
+      formData.append('time', studyTime);
+
+      if (dicomFile) {
+        formData.append('dicomFile', dicomFile);
+      }
+      if (reportFile) {
+        formData.append('reportFile', reportFile);
+      }
+
+      const response = await fetch('http://localhost:5000/api/studies', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || 'Failed to upload study');
+      }
 
       console.log('Study uploaded successfully');
       hide();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding study:', err);
-      setError('Failed to add study. Please try again.');
+      setError(err.message || 'Failed to add study. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
