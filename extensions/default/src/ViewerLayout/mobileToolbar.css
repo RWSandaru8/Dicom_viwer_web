@@ -46,8 +46,8 @@
     justify-content: center;
     margin-left: 0;
     margin-right: 0;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     background: #000000;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000;
