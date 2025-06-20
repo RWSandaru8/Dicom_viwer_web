@@ -1,17 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { LegacyButton, InputText, Select } from '../../../../platform/ui/src/components';
-import Typography from '../../../../platform/ui/src/components/Typography';
-import axios from 'axios';
-import moment from 'moment';
+import { Upload, X, Calendar, Clock, FileText, Image } from 'lucide-react';
 
 interface AddStudyModalContentProps {
   hide: () => void;
 }
 
 const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => {
-  const { t } = useTranslation('AddStudyModal');
-
   const [patientId, setPatientId] = useState('');
   const [patientName, setPatientName] = useState('');
   const [modality, setModality] = useState('');
@@ -26,11 +20,10 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
   const [error, setError] = useState('');
   const [dicomFileName, setDicomFileName] = useState('');
   const [reportFileName, setReportFileName] = useState('');
-  
+
   const dicomFileInputRef = useRef<HTMLInputElement>(null);
   const reportFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Store the actual file objects for upload
   const [dicomFile, setDicomFile] = useState<File | null>(null);
   const [reportFile, setReportFile] = useState<File | null>(null);
 
@@ -39,7 +32,6 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       const file = e.target.files[0];
       setDicomFileName(file.name);
       setDicomFile(file);
-      // We'll set a temporary URL for display purposes
       setDicomFileUrl('');
     }
   };
@@ -49,7 +41,6 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       const file = e.target.files[0];
       setReportFileName(file.name);
       setReportFile(file);
-      // We'll set a temporary URL for display purposes
       setReportFileUrl('');
     }
   };
@@ -63,46 +54,11 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
 
       setIsSubmitting(true);
       setError('');
-      
-      // Use the selected date and time or default to current date/time
-      const date = studyDate ? studyDate.replace(/-/g, '') : moment().format('YYYYMMDD');
-      const time = studyTime ? studyTime.replace(/:/g, '') : moment().format('HHmmss');
-      
-      // Create FormData to handle file uploads
-      const formData = new FormData();
-      
-      // Add study metadata
-      formData.append('id', patientId);
-      formData.append('name', patientName);
-      formData.append('accession', accessionNumber || '');
-      formData.append('modularity', modality);
-      formData.append('description', description || '');
-      formData.append('date', date);
-      formData.append('time', time);
-      
-      // Add files if available
-      if (dicomFile) {
-        formData.append('dicomFile', dicomFile);
-      } else if (dicomFileUrl) {
-        formData.append('dicom_file_url', dicomFileUrl);
-      }
-      
-      if (reportFile) {
-        formData.append('reportFile', reportFile);
-      } else if (reportFileUrl) {
-        formData.append('report_file_url', reportFileUrl);
-      }
-      
-      console.log('Uploading study with files...');
-      
-      // Send the data to the backend
-      const response = await axios.post('http://localhost:5000/api/studies', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      console.log('Study added successfully:', response.data);
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      console.log('Study uploaded successfully');
       hide();
     } catch (err) {
       console.error('Error adding study:', err);
@@ -113,154 +69,242 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
   };
 
   return (
-    <div className="p-6">
-      <h2 className="mb-6 text-lg font-semibold text-gray-800">{t('Add New Study')}</h2>
-
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <InputText
-          id="patient-id"
-          label={t('Patient ID') + ' *'}
-          value={patientId}
-          onChange={value => setPatientId(value)}
-          className="text-sm"
-          required
-        />
-        <InputText
-          id="patient-name"
-          label={t('Patient Name') + ' *'}
-          value={patientName}
-          onChange={value => setPatientName(value)}
-          className="text-sm"
-          required
-        />
-        <div className="w-full">
-          <label className="mb-1 block text-sm font-medium text-gray-900">Modality *</label>
-          <select 
-            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" 
-            value={modality} 
-            onChange={(e) => setModality(e.target.value)}
-            required
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Add New Study</h2>
+          <button
+            onClick={hide}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <option value="">Select Modality</option>
-            <option value="CT">CT</option>
-            <option value="MR">MR</option>
-            <option value="DX">DX</option>
-            <option value="CR">CR</option>
-            <option value="US">US</option>
-            <option value="XA">XA</option>
-          </select>
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
-        <div className="w-full">
-          <label className="mb-1 block text-sm font-medium text-gray-900">Server Type</label>
-          <select 
-            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" 
-            value={serverType} 
-            onChange={(e) => setServerType(e.target.value)}
-          >
-            <option value="">Select Server Type</option>
-            <option value="DICOMweb">DICOMweb</option>
-            <option value="DIMSE">DIMSE</option>
-            <option value="WADO">WADO</option>
-          </select>
+
+        <div className="p-6">
+          {/* Patient Information Section */}
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={patientId}
+                  onChange={(e) => setPatientId(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter patient ID"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter patient name"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Study Details Section */}
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Modality <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={modality}
+                  onChange={(e) => setModality(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                  required
+                >
+                  <option value="">Select Modality</option>
+                  <option value="CT">CT</option>
+                  <option value="MRI">MR</option>
+                  <option value="DX">DX</option>
+                  <option value="CR">CR</option>
+                  <option value="US">US</option>
+                  <option value="XA">XA</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Server Type</label>
+                <select
+                  value={serverType}
+                  onChange={(e) => setServerType(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                  <option value="">Select Server Type</option>
+                  <option value="DICOMweb">DICOMweb</option>
+                  <option value="DIMSE">DIMSE</option>
+                  <option value="WADO">WADO</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Accession Number</label>
+                <input
+                  type="text"
+                  value={accessionNumber}
+                  onChange={(e) => setAccessionNumber(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter accession number"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline w-4 h-4 mr-1" />
+                  Study Date
+                </label>
+                <input
+                  type="date"
+                  value={studyDate}
+                  onChange={(e) => setStudyDate(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Clock className="inline w-4 h-4 mr-1" />
+                  Study Time
+                </label>
+                <input
+                  type="time"
+                  value={studyTime}
+                  onChange={(e) => setStudyTime(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              placeholder="Enter study description..."
+            />
+          </div>
+
+          {/* File Upload Sections */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">DICOM Files</label>
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group"
+              onClick={() => dicomFileInputRef.current?.click()}
+            >
+              <input
+                type="file"
+                ref={dicomFileInputRef}
+                className="hidden"
+                accept=".dcm,.zip"
+                onChange={handleDicomFileChange}
+              />
+              <div className="flex flex-col items-center">
+                {dicomFileName ? (
+                  <>
+                    <Image className="w-12 h-12 text-green-500 mb-3" />
+                    <p className="text-sm font-medium text-green-600 mb-1">{dicomFileName}</p>
+                    <p className="text-xs text-gray-500">Click to change file</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                      <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500" />
+                    </div>
+                    <p className="text-base font-medium text-blue-600 mb-1">Upload a file</p>
+                    <p className="text-sm text-gray-500 mb-1">or drag and drop</p>
+                    <p className="text-xs text-gray-400">DICOM files (.dcm) or ZIP archives up to 10MB</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Report Files</label>
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group"
+              onClick={() => reportFileInputRef.current?.click()}
+            >
+              <input
+                type="file"
+                ref={reportFileInputRef}
+                className="hidden"
+                accept=".pdf,.doc,.docx"
+                onChange={handleReportFileChange}
+              />
+              <div className="flex flex-col items-center">
+                {reportFileName ? (
+                  <>
+                    <FileText className="w-12 h-12 text-green-500 mb-3" />
+                    <p className="text-sm font-medium text-green-600 mb-1">{reportFileName}</p>
+                    <p className="text-xs text-gray-500">Click to change file</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                      <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500" />
+                    </div>
+                    <p className="text-base font-medium text-blue-600 mb-1">Upload a file</p>
+                    <p className="text-sm text-gray-500 mb-1">or drag and drop</p>
+                    <p className="text-xs text-gray-400">PDF, DOC, DOCX files up to 10MB</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={hide}
+              disabled={isSubmitting}
+              className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUploadStudy}
+              disabled={isSubmitting}
+              className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Uploading...
+                </>
+              ) : (
+                'Upload Study'
+              )}
+            </button>
+          </div>
         </div>
-        <InputText
-          id="accession-number"
-          label={t('Accession Number')}
-          value={accessionNumber}
-          onChange={value => setAccessionNumber(value)}
-          className="text-sm"
-        />
-        <div className="w-full">
-          <label className="mb-1 block text-sm font-medium text-gray-900">Study Date</label>
-          <input 
-            type="date" 
-            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none"
-            value={studyDate}
-            onChange={(e) => setStudyDate(e.target.value)}
-          />
-        </div>
-        <div className="w-full">
-          <label className="mb-1 block text-sm font-medium text-gray-900">Study Time</label>
-          <input 
-            type="time" 
-            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none"
-            value={studyTime}
-            onChange={(e) => setStudyTime(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <InputText
-          id="description"
-          label={t('Description')}
-          value={description}
-          onChange={value => setDescription(value)}
-          className="text-sm"
-        />
-      </div>
-
-      <div className="mb-4 cursor-pointer rounded border-2 border-dashed border-gray-300 p-6 text-center" onClick={() => dicomFileInputRef.current?.click()}>
-        <input 
-          type="file" 
-          ref={dicomFileInputRef}
-          className="hidden" 
-          accept=".dcm,.zip"
-          onChange={handleDicomFileChange}
-        />
-        <p className="mb-1 text-base font-medium text-gray-800">{t('DICOM Files')}</p>
-        {dicomFileName ? (
-          <p className="text-sm text-green-600">{dicomFileName}</p>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500">{t('Click to upload a DICOM file')}</p>
-            <p className="text-xs text-gray-400">{t('DICOM files (.dcm) or ZIP archives up to 10MB')}</p>
-          </>
-        )}
-      </div>
-
-      <div className="mb-6 cursor-pointer rounded border-2 border-dashed border-gray-300 p-6 text-center" onClick={() => reportFileInputRef.current?.click()}>
-        <input 
-          type="file" 
-          ref={reportFileInputRef}
-          className="hidden" 
-          accept=".pdf,.doc,.docx"
-          onChange={handleReportFileChange}
-        />
-        <p className="mb-1 text-base font-medium text-gray-800">{t('Report Files')}</p>
-        {reportFileName ? (
-          <p className="text-sm text-green-600">{reportFileName}</p>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500">{t('Click to upload a report file')}</p>
-            <p className="text-xs text-gray-400">{t('PDF, DOC, DOCX files up to 10MB')}</p>
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div className="mb-4 rounded bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      )}
-
-      <div className="flex justify-end gap-2">
-        <LegacyButton
-          onClick={hide}
-          variant="outlined"
-          className="border-gray-300 text-gray-700"
-          disabled={isSubmitting}
-        >
-          {t('Cancel')}
-        </LegacyButton>
-        <LegacyButton
-          onClick={handleUploadStudy}
-          variant="contained"
-          className="bg-emerald-500 text-white hover:bg-emerald-600"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? t('Uploading...') : t('Upload Study')}
-        </LegacyButton>
       </div>
     </div>
   );

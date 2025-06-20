@@ -144,6 +144,32 @@ function WorkList(props: WorkListProps) {
   const [backendStudies, setBackendStudies] = useState([]);
   const [isLoadingBackendStudies, setIsLoadingBackendStudies] = useState(false);
 
+  // Get query filter values from URL params
+  const queryFilterValues = _getQueryFilterValues(searchParams);
+  const [sessionQueryFilterValues, updateSessionQueryFilterValues] = useSessionStorage({
+    key: 'queryFilterValues',
+    defaultValue: queryFilterValues,
+    clearOnUnload: true,
+  });
+  
+  // Initialize filter values state
+  const [filterValues, setFilterValues] = useState<FilterValues>({
+    patientName: '',
+    mrn: '',
+    studyDate: {
+      startDate: null,
+      endDate: null,
+    },
+    description: '',
+    modalities: [] as string[],
+    accession: '',
+    pageNumber: 1,
+    resultsPerPage: 25,
+    sortBy: 'studyDate',
+    sortDirection: 'descending',
+    datasources: '',
+  });
+
   // Fetch studies from backend when component mounts
   useEffect(() => {
     const getBackendStudies = async () => {
@@ -192,16 +218,104 @@ function WorkList(props: WorkListProps) {
 
     getBackendStudies();
   }, []);
-
-  // Only use studies from backend
-  const combinedStudies = useMemo(() => {
-    // Only use backend studies
-    return backendStudies;
-  }, [backendStudies]);
-
+  
   // State variables for the ViewFilesModal
   const [selectedStudy, setSelectedStudy] = useState<any>(null);
   const [isViewFilesModalOpen, setIsViewFilesModalOpen] = useState(false);
+
+  // Filter and combine studies based on filter values
+  const combinedStudies = useMemo(() => {
+    // Start with all backend studies
+    let filteredStudies = [...backendStudies];
+    
+    // Apply filters
+    if (filterValues.patientName) {
+      const searchTerm = filterValues.patientName.toLowerCase();
+      filteredStudies = filteredStudies.filter(study => 
+        (study.Name && study.Name.toLowerCase().includes(searchTerm)) ||
+        (study.ID && study.ID.toLowerCase().includes(searchTerm))
+      );
+    }
+    
+    if (filterValues.description) {
+      const searchTerm = filterValues.description.toLowerCase();
+      filteredStudies = filteredStudies.filter(study => 
+        study.Description && study.Description.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    if (filterValues.accession) {
+      const searchTerm = filterValues.accession.toLowerCase();
+      filteredStudies = filteredStudies.filter(study => 
+        study.Accession && study.Accession.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Filter by modality
+    if (filterValues.modalities && filterValues.modalities.length > 0) {
+      filteredStudies = filteredStudies.filter(study => {
+        if (!study.Modality) return false;
+        return filterValues.modalities.some(modality => 
+          study.Modality.toUpperCase() === modality.toUpperCase()
+        );
+      });
+    }
+    
+    // Filter by date range
+    if (filterValues.studyDate.startDate || filterValues.studyDate.endDate) {
+      filteredStudies = filteredStudies.filter(study => {
+        if (!study.Date) return false;
+        
+        const studyDate = new Date(study.Date);
+        let isInRange = true;
+        
+        if (filterValues.studyDate.startDate) {
+          const startDate = new Date(filterValues.studyDate.startDate);
+          isInRange = isInRange && studyDate >= startDate;
+        }
+        
+        if (filterValues.studyDate.endDate) {
+          const endDate = new Date(filterValues.studyDate.endDate);
+          isInRange = isInRange && studyDate <= endDate;
+        }
+        
+        return isInRange;
+      });
+    }
+    
+    // Apply datasource filter if specified
+    if (filterValues.datasources) {
+      filteredStudies = filteredStudies.filter(study => 
+        study.SourceAE === filterValues.datasources
+      );
+    }
+    
+    // Sort studies based on sortBy and sortDirection
+    filteredStudies.sort((a, b) => {
+      const sortModifier = filterValues.sortDirection === 'ascending' ? 1 : -1;
+      
+      switch (filterValues.sortBy) {
+        case 'patientName':
+          return ((a.Name || '') > (b.Name || '') ? 1 : -1) * sortModifier;
+        case 'studyDate':
+          if (!a.Date && !b.Date) return 0;
+          if (!a.Date) return sortModifier;
+          if (!b.Date) return -1 * sortModifier;
+          return ((new Date(a.Date) > new Date(b.Date)) ? 1 : -1) * sortModifier;
+        case 'modality':
+          return ((a.Modality || '') > (b.Modality || '') ? 1 : -1) * sortModifier;
+        case 'accession':
+          return ((a.Accession || '') > (b.Accession || '') ? 1 : -1) * sortModifier;
+        default:
+          return 0;
+      }
+    });
+    
+    // Apply pagination
+    const startIndex = (filterValues.pageNumber - 1) * filterValues.resultsPerPage;
+    const endIndex = startIndex + filterValues.resultsPerPage;
+    return filteredStudies.slice(startIndex, endIndex);
+  }, [backendStudies, filterValues]);
 
   const handleStudyClick = (studyId: string) => {
     // Find the selected study from combinedStudies
@@ -215,31 +329,8 @@ function WorkList(props: WorkListProps) {
     }
   };
 
-  const queryFilterValues = _getQueryFilterValues(searchParams);
-  const [sessionQueryFilterValues, updateSessionQueryFilterValues] = useSessionStorage({
-    key: 'queryFilterValues',
-    defaultValue: queryFilterValues,
-    clearOnUnload: true,
-  });
-  const [filterValues, setFilterValues] = useState<FilterValues>({
-    patientName: '',
-    mrn: '',
-    studyDate: {
-      startDate: null,
-      endDate: null,
-    },
-    description: '',
-    modalities: [] as string[],
-    accession: '',
-    pageNumber: 1,
-    resultsPerPage: 25,
-    sortBy: 'studyDate',
-    sortDirection: 'descending',
-    datasources: '',
-  });
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDateRange, setSelectedDateRange] = useState('');
+  const [selectedDateRange, setSelectedDateRange] = useState('ALL');
   const [selectedModality, setSelectedModality] = useState('All');
   const [selectedSource, setSelectedSource] = useState('All Sources');
   const [availableModalities] = useState<string[]>(['All', 'CT', 'MRI', 'DX', 'IO', 'CR']);
@@ -774,7 +865,41 @@ function WorkList(props: WorkListProps) {
                     className={`${selectedDateRange === range ? 'bg-[#00A693] text-white' : 'bg-[#E5E5E5] text-[#333333] hover:bg-[#F1F5F9]'} border border-[#CBD5E1] `}
                     onClick={() => {
                       setSelectedDateRange(range);
-                      // You may want to update the filterValues here based on the selected range
+                      
+                      // Update the filterValues based on the selected date range
+                      const today = new Date();
+                      let startDate = null;
+                      let endDate = today.toISOString().split('T')[0]; // Default end date is today
+                      
+                      switch (range) {
+                        case '1D': // Last 1 day
+                          startDate = new Date(today.setDate(today.getDate() - 1)).toISOString().split('T')[0];
+                          break;
+                        case '3D': // Last 3 days
+                          startDate = new Date(today.setDate(today.getDate() - 3)).toISOString().split('T')[0];
+                          break;
+                        case '1W': // Last week
+                          startDate = new Date(today.setDate(today.getDate() - 7)).toISOString().split('T')[0];
+                          break;
+                        case '1M': // Last month
+                          startDate = new Date(today.setMonth(today.getMonth() - 1)).toISOString().split('T')[0];
+                          break;
+                        case '1Y': // Last year
+                          startDate = new Date(today.setFullYear(today.getFullYear() - 1)).toISOString().split('T')[0];
+                          break;
+                        case 'ALL': // All dates
+                          startDate = null;
+                          endDate = null;
+                          break;
+                      }
+                      
+                      updateFilterValues({
+                        ...filterValues,
+                        studyDate: {
+                          startDate,
+                          endDate,
+                        },
+                      });
                     }}
                   >
                     {range}
@@ -801,6 +926,13 @@ function WorkList(props: WorkListProps) {
                     variant="secondary"
                     size="small"
                     className="flex-1 bg-[#E5E5E5] text-[#333333] md:flex-none"
+                    onClick={() => {
+                      // Reset all filters
+                      updateFilterValues(defaultFilterValues);
+                      setSelectedDateRange('ALL');
+                      setSelectedModality('All');
+                      setSearchQuery('');
+                    }}
                   >
                     Reset
                   </Button>
@@ -808,6 +940,15 @@ function WorkList(props: WorkListProps) {
                     variant="default"
                     size="small"
                     className="flex-1 bg-[#00A693] text-white md:flex-none"
+                    onClick={() => {
+                      // Apply search query to filter values
+                      updateFilterValues({
+                        ...filterValues,
+                        patientName: searchQuery,
+                        description: searchQuery,
+                        pageNumber: 1, // Reset to first page when searching
+                      });
+                    }}
                   >
                     Search
                   </Button>
@@ -822,7 +963,24 @@ function WorkList(props: WorkListProps) {
                 <ModalityButtons
                   modalities={availableModalities}
                   selectedModality={selectedModality}
-                  onModalityChange={setSelectedModality}
+                  onModalityChange={(modality) => {
+                    setSelectedModality(modality);
+                    
+                    // Update the filterValues based on the selected modality
+                    if (modality === 'All') {
+                      // If 'All' is selected, clear the modalities filter
+                      updateFilterValues({
+                        ...filterValues,
+                        modalities: [],
+                      });
+                    } else {
+                      // Otherwise, set the modalities filter to the selected modality
+                      updateFilterValues({
+                        ...filterValues,
+                        modalities: [modality],
+                      });
+                    }
+                  }}
                   className="grid grid-cols-3 gap-2 sm:flex sm:flex-row"
                 />
               </div>
@@ -831,7 +989,14 @@ function WorkList(props: WorkListProps) {
                 <span className="text-black">Source:</span>
                 <Select
                   value={selectedSource}
-                  onValueChange={setSelectedSource}
+                  onValueChange={(value) => {
+                    setSelectedSource(value);
+                    // Update the filterValues based on the selected source
+                    updateFilterValues({
+                      ...filterValues,
+                      datasources: value === 'All Sources' ? '' : value,
+                    });
+                  }}
                   className="w-full text-black sm:w-40"
                 >
                   <SelectTrigger className="text-black">
@@ -873,7 +1038,7 @@ function WorkList(props: WorkListProps) {
               onChangePerPage={onResultsPerPageChange}
             />
             {!hasStudies && (
-              <EmptyStudies className="text-gray-900" />
+              <EmptyStudies className="!text-black" />
             )}{/*check*/}
           </div>
         </ScrollArea>
