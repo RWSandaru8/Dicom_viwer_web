@@ -69,7 +69,7 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
   };
 
   return (
-    <div className="bg-white w-[60%] max-w-[800px] mx-auto flex flex-col h-[90vh] max-h-[800px] rounded-xl overflow-hidden">
+    <div className="p4 bg-white w-[50%] max-w-[600px] mx-auto flex flex-col h-[90vh] max-h-[800px] rounded-xl overflow-hidden shadow-md">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Add New Study</h2>
