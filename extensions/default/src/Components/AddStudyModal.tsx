@@ -69,9 +69,9 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto">
+    <div className="bg-white w-full max-w-md mx-auto flex flex-col h-[90vh] max-h-[800px]">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Add New Study</h2>
         <button
           onClick={hide}
@@ -81,7 +81,7 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
         </button>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Patient Information */}
         <div className="grid grid-cols-2 gap-3">
           <div>
