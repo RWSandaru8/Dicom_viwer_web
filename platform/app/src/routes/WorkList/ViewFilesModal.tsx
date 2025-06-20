@@ -40,8 +40,6 @@ const ViewFilesModal: React.FC<ViewFilesModalProps> = ({ isOpen, onClose, study 
         const filename = dicomFileUrl.split('/').pop() || `${Date.now()}.dcm`;
         const file = new File([blob], filename, { type: blob.type || 'application/dicom' });
 
-        // Use the same helper used by the Local upload route to populate DicomMetadataStore
-        // We import lazily to avoid increasing bundle size unnecessarily
         const { default: filesToStudies } = await import('../Local/filesToStudies');
         const studyIds: string[] = await filesToStudies([file]);
 
