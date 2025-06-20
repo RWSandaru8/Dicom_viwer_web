@@ -11,8 +11,19 @@ import { Toolbar } from '../Toolbar/Toolbar';
 import { useViewportGrid } from '@ohif/ui-next';
 import { IconPresentationProvider, ToolButton } from '@ohif/ui-next';
 import FloatingToolGroupBar from '../Toolbar/FloatingToolGroupBar';
+import './mobileToolbar.css';
 
 const resizableHandleClassName = 'mt-[1px] bg-black';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 600);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return isMobile;
+}
 
 function ViewerLayout({
   // From Extension Module Params
@@ -72,6 +83,8 @@ function ViewerLayout({
   const { activeViewportId } = viewportGrid;
 
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
+  const isMobile = useIsMobile();
 
   /**
    * Set body classes (tailwindcss) that don't allow vertical
@@ -202,55 +215,41 @@ function ViewerLayout({
                     commandsManager={commandsManager}
                   />
                   {/* Glasslike Toolbar Sidebar Overlay */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      height: '100%',
-                      width: '90px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'transparent',
-                      backdropFilter: 'none',
-                      WebkitBackdropFilter: 'none',
-                      borderLeft: 'none',
-                      zIndex: 1,
-                      boxShadow: 'none',
-                      pointerEvents: 'auto',
-                      marginLeft: '24px',
-                      paddingTop: '32px',
-                      paddingBottom: '32px',
-                    }}
-                  >
-                    <IconPresentationProvider
-                      size="large"
-                      IconContainer={ToolButton}
-                    >
-                      <div
-                        style={{
-                          pointerEvents: 'auto',
-                          width: '100%',
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '18px',
-                        }}
+                  {isMobile ? (
+                    <div className="toolbar-overlay toolbar-overlay-mobile">
+                      <IconPresentationProvider
+                        size="large"
+                        IconContainer={ToolButton}
                       >
-                        <Toolbar
-                          buttonSection="primary"
-                          location={1}
-                          viewportId={activeViewportId}
-                          expandedGroup={expandedGroup}
-                          setExpandedGroup={setExpandedGroup}
-                        />
-                      </div>
-                    </IconPresentationProvider>
-                  </div>
+                        <div className="toolbar-buttons-container toolbar-buttons-container-mobile">
+                          <Toolbar
+                            buttonSection="primary"
+                            location={1}
+                            viewportId={activeViewportId}
+                            expandedGroup={expandedGroup}
+                            setExpandedGroup={setExpandedGroup}
+                          />
+                        </div>
+                      </IconPresentationProvider>
+                    </div>
+                  ) : (
+                    <div className="toolbar-overlay">
+                      <IconPresentationProvider
+                        size="large"
+                        IconContainer={ToolButton}
+                      >
+                        <div className="toolbar-buttons-container">
+                          <Toolbar
+                            buttonSection="primary"
+                            location={1}
+                            viewportId={activeViewportId}
+                            expandedGroup={expandedGroup}
+                            setExpandedGroup={setExpandedGroup}
+                          />
+                        </div>
+                      </IconPresentationProvider>
+                    </div>
+                  )}
                 </div>
               </div>
             </ResizablePanel>

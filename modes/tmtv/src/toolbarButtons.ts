@@ -158,6 +158,7 @@ const toolbarButtons = [
       label: 'Window Level',
       commands: setToolActiveToolbar,
       evaluate: 'evaluate.cornerstoneTool',
+      showLabelBelowIcon: true,
     },
   },
   {
