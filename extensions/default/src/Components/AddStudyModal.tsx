@@ -150,7 +150,7 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
             >
               <option value="">Select Modality</option>
               <option value="CT">CT</option>
-              <option value="MRI">MR</option>
+              <option value="MRI">MRI</option>
               <option value="DX">DX</option>
               <option value="CR">CR</option>
               <option value="US">US</option>
