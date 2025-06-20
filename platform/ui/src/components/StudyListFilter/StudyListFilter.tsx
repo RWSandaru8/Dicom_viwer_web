@@ -42,14 +42,14 @@ const StudyListFilter = ({
 
   return (
     <React.Fragment>
-      <div className="container relative mx-auto flex flex-row items-center justify-between bg-[#F5F5F5] py-4">
+      <div className="w-full flex flex-row items-center justify-between bg-[#F5F5F5] py-4 px-4">
         <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
           <Typography
             component="h6"
             variant="h6"
             className="text-[#333333]"
           >
-            {t('StudyList')}
+            {t('📁Patient Studies')}
           </Typography>
           {getDataSourceConfigurationComponent && getDataSourceConfigurationComponent()}
           {onUploadClick && (
@@ -97,7 +97,7 @@ const StudyListFilter = ({
             variant="outlined"
             color="primaryActive"
             border="primaryActive"
-            className="ml-4 !border-none !bg-[#00A693] !font-medium !text-white shadow-sm transition-all duration-200 hover:!bg-[#008A7A] hover:shadow-md"
+            className="ml-4 !border-none !bg-[#00A693] !font-medium !text-white shadow-sm transition-all duration-200 hover:!bg-[#008A7A] hover:shadow-md px-6 py-2 text-lg"
             onClick={handleNewStudyClick}
           >
             + New Study

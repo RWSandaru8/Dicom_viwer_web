@@ -16,7 +16,7 @@ import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '../../hooks';
 import { utils } from '@ohif/core';
-import { FolderKanban, Clock4, CalendarDays } from 'lucide-react';
+import { Clock4, FolderKanban, CalendarDays, User2, BookText, AlertCircle } from 'lucide-react';
 
 import {
   StudyListExpandedRow,
@@ -151,7 +151,7 @@ function WorkList(props: WorkListProps) {
     defaultValue: queryFilterValues,
     clearOnUnload: true,
   });
-  
+
   // Initialize filter values state
   const [filterValues, setFilterValues] = useState<FilterValues>({
     patientName: '',
@@ -218,82 +218,121 @@ function WorkList(props: WorkListProps) {
 
     getBackendStudies();
   }, []);
-  
+
   // State variables for the ViewFilesModal
   const [selectedStudy, setSelectedStudy] = useState<any>(null);
   const [isViewFilesModalOpen, setIsViewFilesModalOpen] = useState(false);
 
   // Filter and combine studies based on filter values
+  // State for statistics cards data
+  const [statistics, setStatistics] = useState({
+    totalStudies: 0,
+    todaysScans: 0,
+    lastScanTime: null,
+    percentageChange: 0,
+    isLoading: true,
+    error: null
+  });
+
+  // Fetch statistics data when component mounts
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/statistics');
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch statistics: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setStatistics({
+          ...data,
+          isLoading: false,
+          error: null
+        });
+      } catch (err) {
+        console.error('Error fetching statistics:', err);
+        setStatistics(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Failed to load statistics'
+        }));
+      }
+    };
+
+    fetchStatistics();
+  }, []);
+
   const combinedStudies = useMemo(() => {
     // Start with all backend studies
     let filteredStudies = [...backendStudies];
-    
+
     // Apply filters
     if (filterValues.patientName) {
       const searchTerm = filterValues.patientName.toLowerCase();
-      filteredStudies = filteredStudies.filter(study => 
+      filteredStudies = filteredStudies.filter(study =>
         (study.Name && study.Name.toLowerCase().includes(searchTerm)) ||
         (study.ID && study.ID.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (filterValues.description) {
       const searchTerm = filterValues.description.toLowerCase();
-      filteredStudies = filteredStudies.filter(study => 
+      filteredStudies = filteredStudies.filter(study =>
         study.Description && study.Description.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     if (filterValues.accession) {
       const searchTerm = filterValues.accession.toLowerCase();
-      filteredStudies = filteredStudies.filter(study => 
+      filteredStudies = filteredStudies.filter(study =>
         study.Accession && study.Accession.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     // Filter by modality
     if (filterValues.modalities && filterValues.modalities.length > 0) {
       filteredStudies = filteredStudies.filter(study => {
         if (!study.Modality) return false;
-        return filterValues.modalities.some(modality => 
+        return filterValues.modalities.some(modality =>
           study.Modality.toUpperCase() === modality.toUpperCase()
         );
       });
     }
-    
+
     // Filter by date range
     if (filterValues.studyDate.startDate || filterValues.studyDate.endDate) {
       filteredStudies = filteredStudies.filter(study => {
         if (!study.Date) return false;
-        
+
         const studyDate = new Date(study.Date);
         let isInRange = true;
-        
+
         if (filterValues.studyDate.startDate) {
           const startDate = new Date(filterValues.studyDate.startDate);
           isInRange = isInRange && studyDate >= startDate;
         }
-        
+
         if (filterValues.studyDate.endDate) {
           const endDate = new Date(filterValues.studyDate.endDate);
           isInRange = isInRange && studyDate <= endDate;
         }
-        
+
         return isInRange;
       });
     }
-    
+
     // Apply datasource filter if specified
     if (filterValues.datasources) {
-      filteredStudies = filteredStudies.filter(study => 
+      filteredStudies = filteredStudies.filter(study =>
         study.SourceAE === filterValues.datasources
       );
     }
-    
+
     // Sort studies based on sortBy and sortDirection
     filteredStudies.sort((a, b) => {
       const sortModifier = filterValues.sortDirection === 'ascending' ? 1 : -1;
-      
+
       switch (filterValues.sortBy) {
         case 'patientName':
           return ((a.Name || '') > (b.Name || '') ? 1 : -1) * sortModifier;
@@ -310,7 +349,7 @@ function WorkList(props: WorkListProps) {
           return 0;
       }
     });
-    
+
     // Apply pagination
     const startIndex = (filterValues.pageNumber - 1) * filterValues.resultsPerPage;
     const endIndex = startIndex + filterValues.resultsPerPage;
@@ -772,34 +811,62 @@ function WorkList(props: WorkListProps) {
           <div className="bg-white px-4 pt-3">{/*check*/}
             {/* Stats Cards */}
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* First Card */}
+              {/* First Card - Total Studies */}
               <Card className="h-28 border-[#00A693] bg-white md:h-32">
-                {' '}
-                {/* Mobile: h-32 (8rem/128px), Desktop: h-40 (10rem/160px) */}
                 <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
-                  <div>
-                    <span className="text-sm text-[#475569]">Total Studies</span>
-                    <span className="block text-4xl font-bold text-[#333333] md:text-5xl">77</span>
-                    <span className="text-xs text-[#666666] md:text-sm">
-                      &#9650; 12% from last month
-                    </span>
-                  </div>
+                  {statistics.error ? (
+                    <div className="flex items-center text-red-500">
+                      <AlertCircle className="mr-2 h-5 w-5" />
+                      <span>Error loading statistics</span>
+                    </div>
+                  ) : statistics.isLoading ? (
+                    <div className="w-full">
+                      <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-10 w-16 animate-pulse rounded bg-gray-200"></div>
+                      <div className="mt-2 h-3 w-32 animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-sm text-[#475569]">Total Studies</span>
+                      <span className="block text-4xl font-bold text-[#333333] md:text-5xl">
+                        {statistics.totalStudies}
+                      </span>
+                      <span className={`text-xs ${statistics.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'} md:text-sm`}>
+                        {statistics.percentageChange >= 0 ? '▲' : '▼'} {Math.abs(statistics.percentageChange)}% from last month
+                      </span>
+                    </div>
+                  )}
                   <div className="flex h-10 w-10 items-center justify-center rounded-md border-[#00A693] bg-[#F5F5F5] p-1 md:h-12 md:w-12">
                     <FolderKanban className="h-6 w-6 text-[#666666] md:h-8 md:w-8" />
                   </div>
                 </div>
               </Card>
 
-              {/* Second Card */}
+              {/* Second Card - Today's Scans */}
               <Card className="h-28 border-[#00A693] bg-white md:h-32">
-                {' '}
-                {/* Same responsive height */}
                 <div className="flex h-full flex-row items-center justify-between p-3 md:p-4">
-                  <div>
-                    <span className="text-sm text-[#475569]">Today's Scans</span>
-                    <span className="block text-4xl font-bold text-[#333333] md:text-5xl">8</span>
-                    <span className="text-xs text-[#666666] md:text-sm">Last scan: 2:45 PM</span>
-                  </div>
+                  {statistics.error ? (
+                    <div className="flex items-center text-red-500">
+                      <AlertCircle className="mr-2 h-5 w-5" />
+                      <span>Error loading statistics</span>
+                    </div>
+                  ) : statistics.isLoading ? (
+                    <div className="w-full">
+                      <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-10 w-16 animate-pulse rounded bg-gray-200"></div>
+                      <div className="mt-2 h-3 w-32 animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-sm text-[#475569]">Today's Scans</span>
+                      <span className="block text-4xl font-bold text-[#333333] md:text-5xl">
+                        {statistics.todaysScans}
+                      </span>
+                      <span className="text-xs text-[#666666] md:text-sm">
+                        {statistics.lastScanTime ? `Last scan: ${statistics.lastScanTime}` : 'No scans today'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex h-10 w-10 items-center justify-center rounded-md border-[#00A693] bg-[#F5F5F5] p-1 md:h-12 md:w-12">
                     <Clock4 className="h-6 w-6 text-[#666666] md:h-8 md:w-8" />
                   </div>
@@ -865,12 +932,12 @@ function WorkList(props: WorkListProps) {
                     className={`${selectedDateRange === range ? 'bg-[#00A693] text-white' : 'bg-[#E5E5E5] text-[#333333] hover:bg-[#F1F5F9]'} border border-[#CBD5E1] `}
                     onClick={() => {
                       setSelectedDateRange(range);
-                      
+
                       // Update the filterValues based on the selected date range
                       const today = new Date();
                       let startDate = null;
                       let endDate = today.toISOString().split('T')[0]; // Default end date is today
-                      
+
                       switch (range) {
                         case '1D': // Last 1 day
                           startDate = new Date(today.setDate(today.getDate() - 1)).toISOString().split('T')[0];
@@ -892,7 +959,7 @@ function WorkList(props: WorkListProps) {
                           endDate = null;
                           break;
                       }
-                      
+
                       updateFilterValues({
                         ...filterValues,
                         studyDate: {
@@ -965,7 +1032,7 @@ function WorkList(props: WorkListProps) {
                   selectedModality={selectedModality}
                   onModalityChange={(modality) => {
                     setSelectedModality(modality);
-                    
+
                     // Update the filterValues based on the selected modality
                     if (modality === 'All') {
                       // If 'All' is selected, clear the modalities filter
