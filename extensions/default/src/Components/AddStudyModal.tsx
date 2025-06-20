@@ -55,21 +55,45 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       setIsSubmitting(true);
       setError('');
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Build multipart form data
+      const formData = new FormData();
+      formData.append('id', patientId);
+      formData.append('name', patientName);
+      formData.append('accession', accessionNumber);
+      formData.append('modularity', modality);
+      formData.append('description', description);
+      formData.append('date', studyDate);
+      formData.append('time', studyTime);
+
+      if (dicomFile) {
+        formData.append('dicomFile', dicomFile);
+      }
+      if (reportFile) {
+        formData.append('reportFile', reportFile);
+      }
+
+      const response = await fetch('http://localhost:5000/api/studies', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || 'Failed to upload study');
+      }
 
       console.log('Study uploaded successfully');
       hide();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding study:', err);
-      setError('Failed to add study. Please try again.');
+      setError(err.message || 'Failed to add study. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-white w-[60%] max-w-[800px] mx-auto flex flex-col h-[90vh] max-h-[800px] rounded-xl overflow-hidden">
+    <div className="p4 bg-white w-[50%] max-w-[600px] mx-auto flex flex-col h-[90vh] max-h-[800px] rounded-xl overflow-hidden shadow-md">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Add New Study</h2>
