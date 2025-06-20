@@ -32,9 +32,10 @@ const StudyListFilter = ({
 
   const handleNewStudyClick = () => {
     show({
-      title: t('Add New Study'),
+      title: '', // Remove the title text
       content: AddStudyModalContent,
-      containerClassName: 'w-[800px]',
+      containerClassName: 'w-[120vw] max-w-[1400px] !border-0 !shadow-none !bg-transparent',
+      contentClassName: '!p-0',
       shouldCloseOnEsc: true,
       shouldCloseOnOverlayClick: true,
     });
