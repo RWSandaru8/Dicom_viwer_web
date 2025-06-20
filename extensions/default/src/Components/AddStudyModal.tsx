@@ -30,13 +30,17 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
   const dicomFileInputRef = useRef<HTMLInputElement>(null);
   const reportFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Store the actual file objects for upload
+  const [dicomFile, setDicomFile] = useState<File | null>(null);
+  const [reportFile, setReportFile] = useState<File | null>(null);
+
   const handleDicomFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setDicomFileName(file.name);
-      // In a real implementation, you would upload this file to a server and get a URL back
-      // For now, we'll just use a placeholder URL that includes the filename
-      setDicomFileUrl(`/uploads/dicom/${file.name}`);
+      setDicomFile(file);
+      // We'll set a temporary URL for display purposes
+      setDicomFileUrl('');
     }
   };
 
@@ -44,9 +48,9 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setReportFileName(file.name);
-      // In a real implementation, you would upload this file to a server and get a URL back
-      // For now, we'll just use a placeholder URL that includes the filename
-      setReportFileUrl(`/uploads/reports/${file.name}`);
+      setReportFile(file);
+      // We'll set a temporary URL for display purposes
+      setReportFileUrl('');
     }
   };
 
@@ -64,22 +68,39 @@ const AddStudyModalContent: React.FC<AddStudyModalContentProps> = ({ hide }) => 
       const date = studyDate ? studyDate.replace(/-/g, '') : moment().format('YYYYMMDD');
       const time = studyTime ? studyTime.replace(/:/g, '') : moment().format('HHmmss');
       
-      const studyData = {
-        id: patientId, // Using patientId as the study id
-        name: patientName,
-        report_file_url: reportFileUrl || `default-report-${Date.now()}.pdf`,
-        dicom_file_url: dicomFileUrl || `default-dicom-${Date.now()}.dcm`,
-        accession: accessionNumber,
-        modularity: modality,
-        description: description,
-        date: date,
-        time: time
-      };
+      // Create FormData to handle file uploads
+      const formData = new FormData();
       
-      console.log('Sending study data:', studyData);
+      // Add study metadata
+      formData.append('id', patientId);
+      formData.append('name', patientName);
+      formData.append('accession', accessionNumber || '');
+      formData.append('modularity', modality);
+      formData.append('description', description || '');
+      formData.append('date', date);
+      formData.append('time', time);
+      
+      // Add files if available
+      if (dicomFile) {
+        formData.append('dicomFile', dicomFile);
+      } else if (dicomFileUrl) {
+        formData.append('dicom_file_url', dicomFileUrl);
+      }
+      
+      if (reportFile) {
+        formData.append('reportFile', reportFile);
+      } else if (reportFileUrl) {
+        formData.append('report_file_url', reportFileUrl);
+      }
+      
+      console.log('Uploading study with files...');
       
       // Send the data to the backend
-      const response = await axios.post('http://localhost:5000/api/studies', studyData);
+      const response = await axios.post('http://localhost:5000/api/studies', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       
       console.log('Study added successfully:', response.data);
       hide();

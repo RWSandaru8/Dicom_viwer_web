@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Types } from '@ohif/core';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import NewStudyTable from './NewStudyTable';
+import ViewFilesModal from './ViewFilesModal';
 
 import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
@@ -152,23 +153,27 @@ function WorkList(props: WorkListProps) {
         console.log('Raw studies from backend:', fetchedStudies);
 
         // Map backend studies to the format expected by the NewStudyTable component
-        const mappedStudies = fetchedStudies.map(study => ({
-          // These fields match the NewStudyTable.tsx interface
-          ID: study.id || '',
-          Name: study.name || 'Unknown',
-          Report: study.report_file_url ? study.report_file_url.split('/').pop() : 'No Report',
-          Accession: study.accession || '',
-          Modality: study.modularity || '',
-          Description: study.description || '',
-          Date: study.date ? `${study.date.slice(0, 4)}-${study.date.slice(5, 7)}-${study.date.slice(8, 10)}` : '',
-          Time: study.time ? `${study.time.slice(0, 2)}:${study.time.slice(3, 5)}` : '',
-          SourceAE: 'Local',
+        const mappedStudies = fetchedStudies.map(study => {
+          console.log('Processing study:', study);
+          
+          return {
+            // These fields match the NewStudyTable.tsx interface
+            ID: study.id || '',
+            Name: study.name || 'Unknown',
+            Report: study.report_file_url ? study.report_file_url.split('/').pop() : 'No Report',
+            Accession: study.accession || '',
+            Modality: study.modularity || '',
+            Description: study.description || '',
+            Date: study.date ? `${study.date.slice(0, 4)}-${study.date.slice(5, 7)}-${study.date.slice(8, 10)}` : '',
+            Time: study.time ? `${study.time.slice(0, 2)}:${study.time.slice(3, 5)}` : '',
+            SourceAE: 'Local',
 
-          // Keep these for internal use
-          studyInstanceUid: study.id,
-          dicomFileUrl: study.dicom_file_url || '',
-          reportFileUrl: study.report_file_url || ''
-        }));
+            // Keep these for internal use - ensure they're properly named for the ViewFilesModal
+            studyInstanceUid: study.id,
+            dicomFileUrl: study.dicom_file_url || '',
+            reportFileUrl: study.report_file_url || ''
+          };
+        });
 
         setBackendStudies(mappedStudies);
         console.log('Mapped studies for table:', mappedStudies);
@@ -188,9 +193,20 @@ function WorkList(props: WorkListProps) {
     return backendStudies;
   }, [backendStudies]);
 
+  // State variables for the ViewFilesModal
+  const [selectedStudy, setSelectedStudy] = useState<any>(null);
+  const [isViewFilesModalOpen, setIsViewFilesModalOpen] = useState(false);
+
   const handleStudyClick = (studyId: string) => {
-    // Assuming the DICOM Viewer page route is '/viewer/:studyId'
-    navigate(`/viewer/${studyId}`);
+    // Find the selected study from combinedStudies
+    const study = combinedStudies.find(study => study.ID === studyId);
+    if (study) {
+      console.log('Selected study:', study);
+      
+      // Set the selected study and open the modal
+      setSelectedStudy(study);
+      setIsViewFilesModalOpen(true);
+    }
   };
 
   const queryFilterValues = _getQueryFilterValues(searchParams);
@@ -841,9 +857,9 @@ function WorkList(props: WorkListProps) {
             />
             <NewStudyTable
               studies={combinedStudies}
-              onClickRow={handleStudyClick}
+              onRowClick={handleStudyClick}
               className="text-gray-900 bg-white"
-            />{/*check*/}
+            />
             <StudyListPagination
               currentPage={pageNumber}
               totalPages={Math.ceil(combinedStudies.length / resultsPerPage)}
@@ -859,6 +875,13 @@ function WorkList(props: WorkListProps) {
           </div>
         </ScrollArea>
       </div>
+      
+      {/* File viewing modal */}
+      <ViewFilesModal 
+        isOpen={isViewFilesModalOpen} 
+        onClose={() => setIsViewFilesModalOpen(false)} 
+        study={selectedStudy} 
+      />
     </div>
   );
 }
