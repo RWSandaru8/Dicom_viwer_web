@@ -10,7 +10,13 @@ interface ToolbarProps {
   setExpandedGroup?: (id: string | null) => void;
 }
 
-export function Toolbar({ buttonSection = 'primary', viewportId, location, expandedGroup, setExpandedGroup }: ToolbarProps) {
+export function Toolbar({
+  buttonSection = 'primary',
+  viewportId,
+  location,
+  expandedGroup,
+  setExpandedGroup,
+}: ToolbarProps) {
   const {
     toolbarButtons,
     onInteraction,
@@ -48,7 +54,10 @@ export function Toolbar({ buttonSection = 'primary', viewportId, location, expan
         };
 
         // If this is a tool group (hasDropdown or has multiple items), render only the group icon in the sidebar
-        if ((componentProps.hasDropdown || Component === ToolButtonListWrapper) && setExpandedGroup) {
+        if (
+          (componentProps.hasDropdown || Component === ToolButtonListWrapper) &&
+          setExpandedGroup
+        ) {
           return (
             <div key={id}>
               <ToolButtonListWrapper
@@ -56,7 +65,9 @@ export function Toolbar({ buttonSection = 'primary', viewportId, location, expan
                 id={id}
                 sidebarTriggerOnly={true}
                 isActive={expandedGroup === id}
-                onSidebarTrigger={() => setExpandedGroup && setExpandedGroup(expandedGroup === id ? null : id)}
+                onSidebarTrigger={() =>
+                  setExpandedGroup && setExpandedGroup(expandedGroup === id ? null : id)
+                }
               />
             </div>
           );
@@ -69,6 +80,7 @@ export function Toolbar({ buttonSection = 'primary', viewportId, location, expan
               {...enhancedProps}
               id={id}
               location={location}
+              showLabelBelowIcon={true}
               onInteraction={args => {
                 onInteraction({
                   ...args,

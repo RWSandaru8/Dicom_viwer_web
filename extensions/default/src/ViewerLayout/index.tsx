@@ -53,6 +53,7 @@ function ViewerLayout({
   const [hasLeftPanels, setHasLeftPanels] = useState(hasPanels('left'));
   const [leftPanelClosedState, setLeftPanelClosed] = useState(leftPanelClosed);
   const [rightPanelClosedState, setRightPanelClosed] = useState(rightPanelClosed);
+  const [viewerHeight, setViewerHeight] = useState(getViewerHeight());
 
   const [
     leftPanelProps,
@@ -85,6 +86,20 @@ function ViewerLayout({
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   const isMobile = useIsMobile();
+
+  function getViewerHeight() {
+    return window.innerWidth <= 600
+      ? 'calc(100vh - 92px)' // Mobile
+      : 'calc(100vh - 52px)'; // Desktop
+  }
+
+  useEffect(() => {
+    function handleResize() {
+      setViewerHeight(getViewerHeight());
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   /**
    * Set body classes (tailwindcss) that don't allow vertical
@@ -164,6 +179,30 @@ function ViewerLayout({
 
   return (
     <div>
+      {/* Left Panel Open Button */}
+      {leftPanelClosedState && (
+        <button
+          className="fixed top-12 left-0 z-50 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
+          style={{ borderTopRightRadius: '0px', borderBottomRightRadius: '6px' }}
+          onClick={() => setLeftPanelClosed(false)}
+          aria-label="Open Left Panel"
+        >
+          <span className="text-2xl text-white">&#x203A;</span> {/* Unicode chevron: ‹ */}
+        </button>
+      )}
+
+      {/* Right Panel Open Button */}
+      {rightPanelClosedState && (
+        <button
+          className="fixed top-12 right-0 z-50 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
+          style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '6px' }}
+          onClick={() => setRightPanelClosed(false)}
+          aria-label="Open Right Panel"
+        >
+          <span className="text-2xl text-white">&#x2039;</span> {/* Unicode chevron: › */}
+        </button>
+      )}
+
       <ViewerHeader
         hotkeysManager={hotkeysManager}
         extensionManager={extensionManager}
@@ -173,8 +212,8 @@ function ViewerLayout({
         setExpandedGroup={setExpandedGroup}
       />
       <div
-        className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-black"
-        style={{ height: 'calc(100vh - 52px' }}
+        className="viewer-main-wrapper relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-black"
+        style={{ height: viewerHeight }}
       >
         <React.Fragment>
           {showLoadingIndicator && <LoadingIndicatorProgress className="h-full w-full bg-black" />}

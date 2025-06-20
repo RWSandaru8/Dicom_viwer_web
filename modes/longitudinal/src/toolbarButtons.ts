@@ -2,6 +2,7 @@ import type { Button } from '@ohif/core/types';
 
 import { EVENTS } from '@cornerstonejs/core';
 import { ViewportGridService } from '@ohif/core';
+import { Tooltip } from '@ohif/ui-next';
 
 const callbacks = (toolName: string) => [
   {
@@ -87,7 +88,7 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.dataOverlayMenu',
     props: {
       icon: 'ViewportViews',
-      label: 'Data Overlay',
+      label: '',
       tooltip: 'Configure data overlay options and manage foreground/background display sets',
       evaluate: 'evaluate.dataOverlayMenu',
     },
@@ -97,7 +98,7 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.orientationMenu',
     props: {
       icon: 'OrientationSwitch',
-      label: 'Orientation',
+      label: '',
       tooltip:
         'Change viewport orientation between axial, sagittal, coronal and acquisition planes',
       evaluate: {
@@ -124,7 +125,7 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.windowLevelMenu',
     props: {
       icon: 'WindowLevel',
-      label: 'Window Level',
+      label: '',
       tooltip: 'Adjust window/level presets and customize image contrast settings',
       evaluate: {
         name: 'evaluate.windowLevelMenu',
@@ -464,7 +465,7 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.toolButton',
     props: {
       icon: 'tool-length',
-      label: 'Length',
+      label: 'Measurements',
       tooltip: 'Length Tool',
       commands: setToolActiveToolbar,
       evaluate: 'evaluate.cornerstoneTool',
@@ -634,6 +635,7 @@ const toolbarButtons: Button[] = [
       rows: 3,
       columns: 4,
       evaluate: 'evaluate.action',
+      showLabelBelowIcon: true,
     },
   },
   {
@@ -653,6 +655,7 @@ const toolbarButtons: Button[] = [
         name: 'evaluate.cornerstoneTool',
         disabledText: 'Select an MPR viewport to enable this tool',
       },
+      tooltip: 'Crosshairs',
     },
   },
   // {

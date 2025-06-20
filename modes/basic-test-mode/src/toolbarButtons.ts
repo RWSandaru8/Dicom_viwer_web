@@ -217,7 +217,7 @@ const toolbarButtons: Button[] = [
     uiType: 'ohif.toolButton',
     props: {
       icon: 'tool-length',
-      label: 'Length',
+      label: 'Measurements',
       tooltip: 'Length Tool',
       commands: setToolActiveToolbar,
       evaluate: 'evaluate.cornerstoneTool',
@@ -376,6 +376,7 @@ const toolbarButtons: Button[] = [
       columns: 4,
       evaluate: 'evaluate.action',
       commands: 'setViewportGridLayout',
+      label: 'Layout',
     },
   },
   {
