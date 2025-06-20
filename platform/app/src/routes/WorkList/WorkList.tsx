@@ -152,10 +152,16 @@ function WorkList(props: WorkListProps) {
         const fetchedStudies = await fetchStudiesFromBackend();
         console.log('Raw studies from backend:', fetchedStudies);
 
+        // Log the DICOM UID format for debugging
+        if (fetchedStudies.length > 0) {
+          console.log('Sample study ID format:', fetchedStudies[0].id);
+          console.log('Complete first study record:', JSON.stringify(fetchedStudies[0], null, 2));
+        }
+
         // Map backend studies to the format expected by the NewStudyTable component
         const mappedStudies = fetchedStudies.map(study => {
           console.log('Processing study:', study);
-          
+
           return {
             // These fields match the NewStudyTable.tsx interface
             ID: study.id || '',
@@ -202,7 +208,7 @@ function WorkList(props: WorkListProps) {
     const study = combinedStudies.find(study => study.ID === studyId);
     if (study) {
       console.log('Selected study:', study);
-      
+
       // Set the selected study and open the modal
       setSelectedStudy(study);
       setIsViewFilesModalOpen(true);
@@ -765,7 +771,7 @@ function WorkList(props: WorkListProps) {
                     key={range}
                     variant="secondary"
                     size="small"
-                    className={`${selectedDateRange === range ? 'bg-[#00A693] text-white' : 'bg-[#E5E5E5] text-[#333333]'} border border-[#CBD5E1] hover:bg-[#F1F5F9]`}
+                    className={`${selectedDateRange === range ? 'bg-[#00A693] text-white' : 'bg-[#E5E5E5] text-[#333333] hover:bg-[#F1F5F9]'} border border-[#CBD5E1] `}
                     onClick={() => {
                       setSelectedDateRange(range);
                       // You may want to update the filterValues here based on the selected range
@@ -862,12 +868,9 @@ function WorkList(props: WorkListProps) {
             />
             <StudyListPagination
               currentPage={pageNumber}
-              totalPages={Math.ceil(combinedStudies.length / resultsPerPage)}
-              onPageNumberChange={onPageNumberChange}
-              onResultsPerPageChange={onResultsPerPageChange}
-              resultsPerPage={resultsPerPage}
-              resultsPerPageOptions={[10, 25, 50, 100]}
-              isLoading={isLoadingData || isLoadingBackendStudies}
+              perPage={resultsPerPage}
+              onChangePage={onPageNumberChange}
+              onChangePerPage={onResultsPerPageChange}
             />
             {!hasStudies && (
               <EmptyStudies className="text-gray-900" />
@@ -875,12 +878,12 @@ function WorkList(props: WorkListProps) {
           </div>
         </ScrollArea>
       </div>
-      
+
       {/* File viewing modal */}
-      <ViewFilesModal 
-        isOpen={isViewFilesModalOpen} 
-        onClose={() => setIsViewFilesModalOpen(false)} 
-        study={selectedStudy} 
+      <ViewFilesModal
+        isOpen={isViewFilesModalOpen}
+        onClose={() => setIsViewFilesModalOpen(false)}
+        study={selectedStudy}
       />
     </div>
   );

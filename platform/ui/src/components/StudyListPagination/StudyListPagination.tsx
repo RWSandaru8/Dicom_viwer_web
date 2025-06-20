@@ -20,10 +20,14 @@ const StudyListPagination = ({ onChangePage, currentPage, perPage, onChangePerPa
     { value: '50', label: '50' },
     { value: '100', label: '100' },
   ];
-  const [selectedRange, setSelectedRange] = useState(ranges.find(r => r.value === perPage));
-  const onSelectedRange = selectedRange => {
+  // Ensure we correctly match numeric `perPage` prop with string `value` in ranges
+  const [selectedRange, setSelectedRange] = useState(
+    ranges.find(r => Number(r.value) === perPage) || ranges[0]
+  );
+  const onSelectedRange = (selectedRange: { value: string; label: string }) => {
     setSelectedRange(selectedRange);
-    onChangePerPage(selectedRange.value);
+    // Cast selected value back to number for the parent callback
+    onChangePerPage(Number(selectedRange.value));
   };
 
   return (
