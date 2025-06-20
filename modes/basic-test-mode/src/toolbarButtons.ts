@@ -309,6 +309,7 @@ const toolbarButtons: Button[] = [
       tooltip: 'Zoom',
       commands: setToolActiveToolbar,
       evaluate: 'evaluate.cornerstoneTool',
+      showLabelBelowIcon: true,
     },
   },
   {
