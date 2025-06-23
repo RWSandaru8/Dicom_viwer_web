@@ -10,6 +10,7 @@ import Debug from './Debug';
 import NotFound from './NotFound';
 import buildModeRoutes from './buildModeRoutes';
 import PrivateRoute from './PrivateRoute';
+import OpenDicom from './OpenDicom';
 import PropTypes from 'prop-types';
 import { routerBasename } from '../utils/publicUrl';
 import { useAppConfig } from '@state';
@@ -76,6 +77,10 @@ const bakedInRoutes = [
   {
     path: `/localbasic`,
     children: Local.bind(null, { modePath: 'viewer/dicomlocal' }),
+  },
+  {
+    path: `/viewer/open`,
+    children: OpenDicom,
   },
 ];
 
