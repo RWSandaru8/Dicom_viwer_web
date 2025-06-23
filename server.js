@@ -14,6 +14,8 @@ app.use(bodyParser.json());
 app.use('/Dicom', express.static(path.join(__dirname, 'Dicom')));
 
 app.post('/open-dicom', (req, res) => {
+  console.log('Received request to open DICOM file');
+  console.debug('Request body:', req.body);
   const { url } = req.body || {};
   if (!url) {
     return res.status(400).json({ error: 'Missing "url" in JSON body' });
