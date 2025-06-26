@@ -89,7 +89,7 @@ function ViewerLayout({
 
   function getViewerHeight() {
     return window.innerWidth <= 600
-      ? 'calc(100vh - 92px)' // Mobile
+      ? 'calc(100vh - 104px)' // Mobile
       : 'calc(100vh - 52px)'; // Desktop
   }
 
@@ -194,7 +194,7 @@ function ViewerLayout({
       {/* Right Panel Open Button */}
       {rightPanelClosedState && (
         <button
-          className="fixed top-12 right-0 z-50 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
+          className="fixed top-12 right-0 z-50 mb-12 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
           style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '6px' }}
           onClick={() => setRightPanelClosed(false)}
           aria-label="Open Right Panel"
