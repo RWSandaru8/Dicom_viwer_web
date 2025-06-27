@@ -40,6 +40,7 @@ function ViewerLayout({
   rightPanelResizable = false,
 }: withAppTypes): React.FunctionComponent {
   const [appConfig] = useAppConfig();
+  const isMobile = useIsMobile();
 
   const { panelService, hangingProtocolService, customizationService } = servicesManager.services;
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(appConfig.showLoadingIndicator);
@@ -51,7 +52,7 @@ function ViewerLayout({
 
   const [hasRightPanels, setHasRightPanels] = useState(hasPanels('right'));
   const [hasLeftPanels, setHasLeftPanels] = useState(hasPanels('left'));
-  const [leftPanelClosedState, setLeftPanelClosed] = useState(leftPanelClosed);
+  const [leftPanelClosedState, setLeftPanelClosed] = useState(leftPanelClosed || isMobile);
   const [rightPanelClosedState, setRightPanelClosed] = useState(rightPanelClosed);
   const [viewerHeight, setViewerHeight] = useState(getViewerHeight());
 
@@ -64,13 +65,19 @@ function ViewerLayout({
     resizableRightPanelProps,
     onHandleDragging,
   ] = useResizablePanels(
-    leftPanelClosed,
+    leftPanelClosedState,
     setLeftPanelClosed,
-    rightPanelClosed,
+    rightPanelClosedState,
     setRightPanelClosed,
     hasLeftPanels,
     hasRightPanels
   );
+
+  useEffect(() => {
+    if (isMobile) {
+      setLeftPanelClosed(true);
+    }
+  }, [isMobile]);
 
   const handleMouseEnter = () => {
     (document.activeElement as HTMLElement)?.blur();
@@ -85,10 +92,8 @@ function ViewerLayout({
 
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
-  const isMobile = useIsMobile();
-
   function getViewerHeight() {
-    return window.innerWidth <= 600
+    return isMobile
       ? 'calc(100vh - 104px)' // Mobile
       : 'calc(100vh - 52px)'; // Desktop
   }
@@ -99,7 +104,7 @@ function ViewerLayout({
     }
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isMobile]);
 
   /**
    * Set body classes (tailwindcss) that don't allow vertical
@@ -182,24 +187,24 @@ function ViewerLayout({
       {/* Left Panel Open Button */}
       {leftPanelClosedState && (
         <button
-          className="fixed top-12 left-0 z-50 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
+          className="fixed top-12 bottom-24 left-0 z-50 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693] sm:h-[calc(100vh-52px)]"
           style={{ borderTopRightRadius: '0px', borderBottomRightRadius: '6px' }}
           onClick={() => setLeftPanelClosed(false)}
           aria-label="Open Left Panel"
         >
-          <span className="text-2xl text-white">&#x203A;</span> {/* Unicode chevron: ‹ */}
+          <span className="text-2xl text-white">&#x203A;</span>
         </button>
       )}
 
       {/* Right Panel Open Button */}
       {rightPanelClosedState && (
         <button
-          className="fixed top-12 right-0 z-50 mb-12 flex h-full w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693]"
+          className="fixed top-12 bottom-24 right-0 z-50 mb-12 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693] sm:h-[calc(100vh-52px)]"
           style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '6px' }}
           onClick={() => setRightPanelClosed(false)}
           aria-label="Open Right Panel"
         >
-          <span className="text-2xl text-white">&#x2039;</span> {/* Unicode chevron: › */}
+          <span className="text-2xl text-white">&#x2039;</span>
         </button>
       )}
 
@@ -310,11 +315,6 @@ function ViewerLayout({
               </>
             ) : null}
           </ResizablePanelGroup>
-
-          {/* GPV MED text in bottom right corner */}
-          {/*<div className="absolute bottom-2 right-12 z-50 rounded border border-gray-700 bg-black px-2 py-1 text-sm font-semibold text-white">
-            GPV MED
-          </div>*/}
         </React.Fragment>
       </div>
     </div>
