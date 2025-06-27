@@ -68,6 +68,7 @@ export function Toolbar({
                 onSidebarTrigger={() =>
                   setExpandedGroup && setExpandedGroup(expandedGroup === id ? null : id)
                 }
+                showLabelBelowIcon={true}
               />
             </div>
           );

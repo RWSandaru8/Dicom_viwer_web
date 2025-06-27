@@ -144,7 +144,7 @@ const Trigger = ({
     >
       <Icons.ByName
         name="tool-layout"
-        className="h-7 w-7"
+        className="h-7 w-7 !text-[#F5F5F5]"
       />
     </Button>
   );

@@ -32,6 +32,7 @@ export default function ToolButtonListWrapper({
   sidebarTriggerOnly = false,
   onSidebarTrigger,
   isActive = false,
+  showLabelBelowIcon = false,
 }: ToolButtonListWrapperProps) {
   const { onInteraction, toolbarButtons } = useToolbar({
     buttonSection,
