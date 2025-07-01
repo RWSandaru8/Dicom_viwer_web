@@ -283,7 +283,7 @@ const SidePanel = ({
     const _childComponents = Array.isArray(tabs) ? tabs : [tabs];
     return (
       <>
-        <div
+        {/*<div
           className={classnames(
             'bg-secondary-dark flex h-[28px] w-full cursor-pointer items-center rounded-md',
             side === 'left' ? 'justify-end pr-2' : 'justify-start pl-2'
@@ -296,8 +296,8 @@ const SidePanel = ({
           <Icons.NavigationPanelReveal
             className={classnames('text-primary', side === 'left' && 'rotate-180 transform')}
           />
-        </div>
-        <div className={classnames('mt-3 flex flex-col space-y-3')}>
+        </div>*/}
+        <div className={classnames('flex flex-col space-y-3')}>
           {_childComponents.map((childComponent, index) => (
             <Tooltip key={index}>
               <TooltipTrigger>

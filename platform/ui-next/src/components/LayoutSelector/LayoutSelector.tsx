@@ -118,35 +118,43 @@ type TriggerProps = {
 const Trigger = ({
   children,
   className,
-  tooltip = 'Change layout',
+  tooltip = 'Change Layout',
   disabled = false,
   disabledText,
-}: TriggerProps) => {
+  showLabelBelowIcon = false,
+}: TriggerProps & { showLabelBelowIcon?: boolean }) => {
   const { isOpen } = useLayoutSelector();
 
   const hasTooltip = tooltip || (disabled && disabledText);
 
-  const button = (
-    <Button
-      className={cn(
-        'inline-flex h-10 w-10 items-center justify-center !rounded-lg',
-        disabled
-          ? 'text-common-bright hover:bg-primary-dark hover:text-primary-light cursor-not-allowed opacity-40'
-          : isOpen
-            ? 'bg-background text-foreground/80'
-            : 'text-foreground/80 hover:bg-background hover:text-highlight bg-transparent',
-        className
+  const buttonContent = (
+    <div className="flex flex-col items-center">
+      <Button
+        className={cn(
+          'inline-flex h-10 w-10 items-center justify-center !rounded-lg',
+          disabled
+            ? 'text-common-bright hover:bg-primary-dark hover:text-primary-light cursor-not-allowed opacity-40'
+            : isOpen
+              ? 'bg-background text-foreground/80'
+              : 'text-foreground/80 hover:bg-background hover:text-highlight bg-transparent',
+          className
+        )}
+        variant="ghost"
+        size="icon"
+        aria-label={tooltip}
+        disabled={disabled}
+      >
+        <Icons.ByName
+          name="tool-layout"
+          className="h-7 w-7 !text-[#F5F5F5]"
+        />
+      </Button>
+      {showLabelBelowIcon && tooltip && (
+        <span className="mt-1 max-w-[80px] truncate text-center text-xs leading-tight text-white">
+          {tooltip}
+        </span>
       )}
-      variant="ghost"
-      size="icon"
-      aria-label={tooltip}
-      disabled={disabled}
-    >
-      <Icons.ByName
-        name="tool-layout"
-        className="h-7 w-7 !text-[#F5F5F5]"
-      />
-    </Button>
+    </div>
   );
 
   // If user passed children (custom button), just wrap it directly
@@ -156,17 +164,18 @@ const Trigger = ({
         asChild
         className={className}
       >
-        {children}
+        <span data-cy="layout-button">{children}</span>
       </PopoverTrigger>
     );
   }
 
-  if (!isOpen && hasTooltip) {
+  // Otherwise, render our default button with tooltip if needed
+  if (hasTooltip) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <span data-cy="layout-button">{button}</span>
+            <span data-cy="layout-button">{buttonContent}</span>
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -179,7 +188,7 @@ const Trigger = ({
 
   return (
     <PopoverTrigger asChild>
-      <span data-cy="layout-button">{button}</span>
+      <span data-cy="layout-button">{buttonContent}</span>
     </PopoverTrigger>
   );
 };

@@ -136,7 +136,7 @@ function ToolbarLayoutSelectorWithServices({
         {...props}
       >
         <LayoutSelector.Trigger
-          tooltip="Change layout"
+          tooltip="Change Layout"
           showLabelBelowIcon={true}
           label="Layout"
         />
