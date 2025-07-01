@@ -187,7 +187,7 @@ function ViewerLayout({
       {/* Left Panel Open Button */}
       {leftPanelClosedState && (
         <button
-          className="fixed top-12 bottom-24 left-0 z-50 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693] sm:h-[calc(100vh-52px)]"
+          className="fixed top-12 bottom-24 left-0 z-50 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-transparent transition-colors sm:h-[calc(100vh-52px)]"
           style={{ borderTopRightRadius: '0px', borderBottomRightRadius: '6px' }}
           onClick={() => setLeftPanelClosed(false)}
           aria-label="Open Left Panel"
@@ -199,7 +199,7 @@ function ViewerLayout({
       {/* Right Panel Open Button */}
       {rightPanelClosedState && (
         <button
-          className="fixed top-12 bottom-24 right-0 z-50 mb-12 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-[#004D45] transition-colors hover:bg-[#00A693] sm:h-[calc(100vh-52px)]"
+          className="fixed top-12 bottom-24 right-0 z-50 mb-12 flex h-[calc(100vh-104px)] w-9 items-center justify-center bg-transparent transition-colors sm:h-[calc(100vh-52px)]"
           style={{ borderTopLeftRadius: '0px', borderBottomLeftRadius: '6px' }}
           onClick={() => setRightPanelClosed(false)}
           aria-label="Open Right Panel"
