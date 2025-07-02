@@ -111,10 +111,10 @@ const getTabClassNames = (
   isActiveTab: boolean,
   isTabDisabled: boolean
 ) =>
-  classnames('h-[28px] mb-[2px] cursor-pointer text-white bg-black', {
+  classnames('h-[28px] mb-[2px] cursor-pointer text-white bg-[#00A693]', {
     'hover:text-primary': !isActiveTab && !isTabDisabled,
-    'rounded-l': tabIndex % numColumns === 0,
-    'rounded-r': (tabIndex + 1) % numColumns === 0 || tabIndex === numTabs - 1,
+    'rounded-0': tabIndex % numColumns === 0,
+    '': (tabIndex + 1) % numColumns === 0 || tabIndex === numTabs - 1,
   });
 
 const getTabStyle = (numTabs: number) => {
@@ -125,7 +125,7 @@ const getTabStyle = (numTabs: number) => {
 
 const getTabIconClassNames = (numTabs: number, isActiveTab: boolean) => {
   return classnames('h-full w-full flex items-center justify-center', {
-    'bg-black': isActiveTab,
+    'bg-[#00A693]': isActiveTab,
     rounded: isActiveTab,
   });
 };
@@ -365,7 +365,7 @@ const SidePanel = ({
       <>
         {getCloseIcon()}
         <div className={classnames('flex grow justify-center')}>
-          <div className={classnames('bg-primary-dark text-primary flex flex-wrap')}>
+          <div className={classnames('text-primary flex flex-wrap bg-[#00A693]')}>
             {tabs.map((tab, tabIndex) => {
               const { disabled } = tab;
               return (
@@ -373,11 +373,11 @@ const SidePanel = ({
                   {tabIndex % numCols !== 0 && (
                     <div
                       className={classnames(
-                        'flex h-[28px] w-[2px] items-center bg-black',
+                        'flex h-[28px] w-[2px] items-center bg-[#00A693]',
                         tabSpacerWidth
                       )}
                     >
-                      <div className="bg-primary-dark h-[20px] w-full"></div>
+                      <div className="h-[20px] w-full bg-[#00A693]"></div>
                     </div>
                   )}
                   <Tooltip key={tabIndex}>
@@ -448,7 +448,7 @@ const SidePanel = ({
         </div>
         <Separator
           orientation="horizontal"
-          className="bg-black"
+          className="bg-[#00A693]"
           thickness="2px"
         />
       </>

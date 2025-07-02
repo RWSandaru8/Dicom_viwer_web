@@ -11,7 +11,7 @@ const FloatingToolGroupBar: React.FC<FloatingToolGroupBarProps> = ({ buttonSecti
     return null;
   }
   return (
-    <div className="pointer-events-auto absolute top-0 left-1/2 z-[100] mt-2 flex w-auto -translate-x-1/2 transform justify-center rounded-lg bg-[#00A693]/10 py-1 px-1 shadow-md">
+    <div className="pointer-events-auto absolute top-0 left-1/2 z-[100] mt-2 flex w-auto -translate-x-1/2 transform justify-center rounded-lg bg-transparent py-1 px-1 shadow-md">
       <ToolButtonListWrapper
         buttonSection={buttonSection}
         id={buttonSection + 'Floating'}
