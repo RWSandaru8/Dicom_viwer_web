@@ -69,17 +69,19 @@ const FloatingToolGroupBar: React.FC<FloatingToolGroupBarProps> = ({ buttonSecti
       }}
     >
       <div
-        className={`rounded-lg ${isMobile ? 'px-2 py-1' : 'bg-[#00A693]/10 px-2 py-1 shadow-lg backdrop-blur-sm'}`}
+        className={`rounded-lg ${isMobile ? 'px-1 py-1' : 'bg-[#00A693]/10 px-2 py-1 shadow-lg'}`}
         style={isMobile ? mobileStyles : {}}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center gap-1">
-          <ToolButtonListWrapper
-            buttonSection={buttonSection}
-            id={buttonSection + 'Floating'}
-            horizontalInHeader={!isMobile}
-            onInteraction={onClose}
-          />
+          <div className="[&_svg]:text-white [&_svg]:hover:text-blue-200">
+            <ToolButtonListWrapper
+              buttonSection={buttonSection}
+              id={buttonSection + 'Floating'}
+              horizontalInHeader={!isMobile}
+              onInteraction={onClose}
+            />
+          </div>
         </div>
         {isMobile && (
           <button

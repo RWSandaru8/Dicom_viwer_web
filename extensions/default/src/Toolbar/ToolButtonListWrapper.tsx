@@ -55,7 +55,7 @@ export default function ToolButtonListWrapper({
         {...primary}
         isActive={isActive}
         onInteraction={() => onSidebarTrigger?.()}
-        className={primary.className}
+        className={`${primary.className} text-white`}
         showLabelBelowIcon={true}
       />
     );
@@ -69,7 +69,7 @@ export default function ToolButtonListWrapper({
             key={item.id}
             {...item}
             onInteraction={({ itemId }) => onInteraction?.({ id, itemId, commands: item.commands })}
-            className={item.className}
+            className={`${item.className} text-white hover:text-blue-200`}
           />
         ))}
       </div>
@@ -89,7 +89,7 @@ export default function ToolButtonListWrapper({
             onInteraction={({ itemId }) =>
               onInteraction?.({ id, itemId, commands: primary.commands })
             }
-            className={primary.className}
+            className={`${primary.className} text-white`}
           />
         </div>
       </ToolButtonListDefault>
@@ -105,6 +105,7 @@ export default function ToolButtonListWrapper({
                 data-tool={item.id}
                 data-active={item.isActive}
                 onSelect={() => onInteraction?.({ id, itemId: item.id, commands: item.commands })}
+                className="text-white hover:bg-blue-600"
               >
                 <span className="pl-1">{item.label || item.tooltip || item.id}</span>
               </ToolButtonListItem>
