@@ -19,19 +19,74 @@ const OpenDicom: React.FC = () => {
     (async () => {
       const params = new URLSearchParams(search);
       const dicomUrl = params.get('dicomUrl');
-      if (!dicomUrl) return;
+      const studyListParam = params.get('studyList');
+      const dicomFolderUrl = params.get('dicomFolderUrl');
+      if (!dicomUrl && !studyListParam && !dicomFolderUrl) return;
 
       try {
-        // 1. Download remote file
-        const response = await fetch(dicomUrl);
-        if (!response.ok) throw new Error('Failed to fetch DICOM file');
-        const blob = await response.blob();
-        const filename = dicomUrl.split('/').pop() || `${Date.now()}.dcm`;
-        const file = new File([blob], filename, {
-          type: blob.type || 'application/dicom',
-        });
+        let urls: string[] = [];
 
-        // 2. Obtain the first localApi datasource
+        if (dicomUrl) {
+          urls = [decodeURIComponent(dicomUrl)];
+        } else if (studyListParam) {
+          urls = studyListParam.split(',').map(decodeURIComponent);
+        } else if (dicomFolderUrl) {
+          const baseUrl = decodeURIComponent(dicomFolderUrl).replace(/\/+$/, '');
+
+          // Attempt to fetch manifest or index JSON listing
+          const manifestCandidates = [`${baseUrl}/manifest.json`, `${baseUrl}/index.json`];
+          for (const m of manifestCandidates) {
+            try {
+              const resp = await fetch(m);
+              if (resp.ok && resp.headers.get('content-type')?.includes('application/json')) {
+                const data = await resp.json();
+                if (Array.isArray(data)) {
+                  urls = data.map((item: string) => `${baseUrl}/${item}`);
+                  break;
+                }
+              }
+            } catch (_) {
+              /* ignore manifest errors */
+            }
+          }
+
+          // Fallback: sequential file names (image-00000.dcm ... ) if manifest not found
+          if (urls.length === 0) {
+            for (let i = 0; i < 2000; i++) {
+              const index = i.toString().padStart(5, '0');
+              const candidate = `${baseUrl}/image-${index}.dcm`;
+              try {
+                const head = await fetch(candidate, { method: 'HEAD' });
+                if (head.ok) {
+                  urls.push(candidate);
+                } else if (i > 0) {
+                  break;
+                }
+              } catch {
+                if (i > 0) break;
+              }
+            }
+          }
+        }
+
+        if (urls.length === 0) {
+          throw new Error('No DICOM files resolved to download');
+        }
+
+        // Download all DICOM files in parallel
+        const files: File[] = await Promise.all(
+          urls.map(async remoteUrl => {
+            const res = await fetch(remoteUrl);
+            if (!res.ok) throw new Error(`Failed to fetch DICOM file: ${remoteUrl}`);
+            const blob = await res.blob();
+            const filename = remoteUrl.split('/').pop() || `${Date.now()}.dcm`;
+            return new File([blob], filename, {
+              type: blob.type || 'application/dicom',
+            });
+          })
+        );
+
+        // Obtain the first localApi datasource
         const localDataSourceEntry = extensionManager
           .modules[MODULE_TYPES.DATA_SOURCE]
           .flatMap(mod => mod.module)
@@ -43,16 +98,16 @@ const OpenDicom: React.FC = () => {
 
         const localDataSource = localDataSourceEntry.createDataSource({});
 
-        // 3. Register the file → StudyInstanceUID(s)
-        const studyUIDs = await filesToStudies([file], localDataSource);
+        // Register the files → StudyInstanceUID(s)
+        const studyUIDs = await filesToStudies(files, localDataSource);
 
-        // 4. Build standard route & navigate
+        // Navigate to viewer with new studies
         const qs = new URLSearchParams();
         studyUIDs.forEach(uid => qs.append('StudyInstanceUIDs', uid));
         qs.append('datasources', 'dicomlocal');
         navigate(`/viewer/dicomlocal?${qs.toString()}`, { replace: true });
       } catch (err) {
-        console.error('Error loading remote DICOM', err);
+        console.error('Error loading remote DICOM(s)', err);
       }
     })();
   }, [search, navigate]);
